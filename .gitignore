@@ -1,0 +1,25 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Logs and local runtime artifacts
+*.log
+instance/
+.DS_Store
+Thumbs.db
+
+# Large local source datasets (keep them in data/raw on your machine)
+data/raw/*.csv
+/Smart_Product_Recommendation_Ecommerce/
+/backups/
+/scratch/
