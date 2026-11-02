@@ -1,0 +1,60 @@
+﻿======================================================================
+RUNNING AUTOMATED TESTS FOR CARTIFY RECOMMENDATION SYSTEM
+======================================================================
+
+[Test 1] Checking Oracle Database 26ai Connection...
+PASS: Oracle 26ai connected. Total products in DB: 35,254
+
+[Test 2] Testing Homepage ('/')...
+Initializing TF-IDF Recommendation Engine...
+TF-IDF Engine ready with 34,190 products in 72.36s!
+PASS: Homepage rendered successfully with categories and recommendations.
+
+[Test 3] Testing Product Catalog ('/products') & Product Card Links...
+PASS: Product catalog cards link correctly and open detail pages.
+
+[Test 4] Testing Product Detail & TF-IDF Recommender ('/product/1551')...
+PASS: Product details and live TF-IDF recommendations rendered with similarity scores.
+
+[Test 5] Testing Demo 1-Click Login ('/demo-login/1')...
+PASS: Demo authentication succeeded.
+
+[Test 6] Testing Cart Add & View ('/cart') with DB Write Isolation...
+PASS: Cart updated; DB write safely intercepted (0 DML commits, interaction rows unchanged at 50,047).
+
+[Test 7] Testing Spelling Error Resilience in Search...
+PASS: 'runing shoes' correctly resolved to footwear: Puma Men Black Running Shoes
+PASS: 'running sheo' correctly resolved to footwear: Kalenji Women Running Shoe
+
+[Test 8] Testing Domain Synonym Expansion ('sneakers', 'cologne') & Brand Preservation ('Kenneth Cole')...
+PASS: 'sneakers' synonym expanded to sports/casual shoes: Puma Men Fox Black Sports Shoes (5/5 Footwear)
+PASS: 'cologne' correctly resolved to Personal Care: Versace Women Bright Crystal Perfume (Personal Care)
+PASS: 'Kenneth Cole' brand search correctly preserved: Kenneth Cole Men Black Dial Chronograph Watch (Brand: Kenneth Cole)
+
+[Test 9] Testing Category Relevance in Similar-Product Recommendations...
+PASS: Kalenji Sports Shoes recommendations are 100% Footwear: ['Kalenji Women Running Shoe', "Kalenji Men's Kapteren Black Shoe", 'Kalenji Elimu White Navy', 'Kalenji Crossport 100 Whi/champ', 'F Sports Men White Cyber Sports Shoes']
+
+[Test 10] Testing Search and Recommender Edge Cases...
+PASS: Empty search query and invalid product ID edge cases handled cleanly.
+
+[Test 11] Testing Stage 2 Multi-User Personalization & History Weighting...
+PASS: User #644 and #3274 have distinct personalized sets based on their Oracle history.
+PASS: Already-purchased items (2134, 3439) excluded for user #10000; alternatives recommended: ['Basics MenNavy Slim Fit Checked Shirt', 'Basics Men Brown Slim Fit Checked Shirt', 'Basics Men Brown Slim Fit Shirt', 'Pune Warriors Womens Match Jersey', 'Delhi Daredevils Womens Match Jersey']
+PASS: Guests and new users cleanly isolated and fall back to popular catalog items.
+
+[Test 12] Testing Intent-Bounded Weight Hierarchy & Diminishing Frequency...
+PASS: Intent bounds strictly hold: Purchase (5.10) > Cart (3.10) > 100x Views (1.69) > 1x View (1.10)
+
+[Test 13] Testing Stage 2 Multi-Category Diversity & Product-Type Cap (max 3/type)...
+PASS: User #644 receives diverse multi-category recommendations (types: {'Shorts': 3, 'Perfume and Body Mist': 3, 'Earrings': 2}, categories: {'Apparel': 3, 'Personal Care': 3, 'Accessories': 2})
+PASS: User #3274 receives diverse recommendations (types: {'Foundation and Primer': 3, 'Heels': 2, 'Perfume and Body Mist': 3}, categories: {'Personal Care': 6, 'Footwear': 2})
+
+[Test 14] Testing Score Transparency (Raw Cosine Match & Adjusted Rank Score)...
+PASS: Scores transparent and correctly ordered: raw=[44.4, 46.3, 47.5, 35.4], rank=[79.8, 75.5, 75.4, 66.1]
+
+[Test 15] Testing Diversity Cap Exclusivity & Safety Edge Cases...
+PASS: Diversity cap properly scoped only to personalization; edge cases handled cleanly.
+
+======================================================================
+ALL 15 VERIFICATION & QUALITY MODULES PASSED WITH 100% SUCCESS!
+======================================================================

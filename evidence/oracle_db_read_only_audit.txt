@@ -1,0 +1,18 @@
+﻿============================================================
+ORACLE DATABASE 26ai READ-ONLY TABLE AUDIT
+============================================================
+Table PRODUCTS       : 35,254 rows
+Table USERS          : 5,001 rows
+Table ORDERS         : 18,950 rows
+Table ORDER_ITEMS    : 22,660 rows
+Table INTERACTIONS   : 50,047 rows
+Table REVIEWS        : 7,268 rows
+Active Products (is_active=1): 34,190 rows
+
+INTERACTIONS BREAKDOWN BY EVENT TYPE:
+  - view           : 28,853
+  - click          : 14,057
+  - add_to_cart    : 4,121
+  - purchase       : 2,056
+  - wishlist       : 960
+============================================================

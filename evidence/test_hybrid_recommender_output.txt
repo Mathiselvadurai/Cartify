@@ -1,0 +1,40 @@
+﻿===========================================================================
+RUNNING AUTOMATED VERIFICATION FOR CARTIFY PHASE 7 HYBRID RECOMMENDER
+===========================================================================
+Initializing TF-IDF Recommendation Engine...
+TF-IDF Engine ready with 34,190 products in 15.39s!
+Engine verified: 34,190 active catalog products, 1,272 CF users.
+
+[Test 1] Testing Selectable Recommendation Strategies...
+PASS: Selectable strategies produce valid rankings: Hybrid top=[43657, 30638, 32590], Content top=[32590, 32588, 30638], CF top=[43966, 26001, 58085]
+
+[Test 2] Testing Cold-Start Fallback Isolation (Guest & New User)...
+PASS: Guests and new users cleanly fall back to active popular favorites without errors.
+
+[Test 3] Testing Sparse History Handling...
+PASS: Sparse user (User #28, 3 interaction) received 8 valid recommendations.
+
+[Test 4] Testing Intent-Bounded Diminishing Logarithmic Weighting...
+PASS: Weight hierarchy strictly bounded: Purchase(5.10) > Cart(3.10) > 100x Views(1.69) > 10x Views(1.36) > 1x View(1.10).
+
+[Test 5] Testing Purchased & Inactive Product Exclusion...
+PASS: Prior purchases 2134 and 3439 strictly excluded from User #10000 hybrid recommendations.
+
+[Test 6] Testing Strict Temporal Separation & Zero Leakage in Offline Evaluation...
+PASS: Hybrid policy evaluated with zero data leakage: HR@8=0.0%, NDCG@8=0.0.
+
+[Test 7] Testing Diversity Cap Preservation (Max 3 per product_type)...
+PASS: User #644 diversity cap preserved: {'Shorts': 3, 'Perfume and Body Mist': 3, 'Earrings': 2} (max=3 <= 3)
+PASS: User #3274 diversity cap preserved: {'Foundation and Primer': 3, 'Heels': 2, 'Perfume and Body Mist': 3} (max=3 <= 3)
+PASS: User #10000 diversity cap preserved: {'Shirts': 3, 'T-Shirts': 3, 'Handbags': 1, 'Clutches': 1} (max=3 <= 3)
+
+[Test 8] Testing Recommendation Explainability Reasons...
+PASS: Transparent explainability reasons verified without PII leaks: 'Hybrid pick: Matches your Apparel tastes & peer browsing patterns'
+
+[Test 9] Testing Hybrid Inference Latency...
+Hybrid Latency over 20 runs: Mean=344.0ms, P95=441.3ms.
+PASS: Inference latency within operational threshold.
+
+===========================================================================
+ALL 9 HYBRID RECOMMENDER TESTS PASSED WITH 100% SUCCESS!
+===========================================================================

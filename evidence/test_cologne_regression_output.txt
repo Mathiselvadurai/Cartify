@@ -1,0 +1,36 @@
+﻿===========================================================================
+RUNNING COLOGNE SEARCH & NLP REGRESSION TEST SUITE
+===========================================================================
+Initializing TF-IDF Recommendation Engine...
+TF-IDF Engine ready with 34,190 products in 65.51s!
+
+[Test 1] Testing 'cologne' search query resolution...
+PASS: 'cologne' resolved to Personal Care: 'Versace Women Bright Crystal Perfume' (Personal Care > Perfume and Body Mist) [44.7%]
+
+[Test 2] Testing 'fragrance' and 'perfume' searches...
+PASS: 'fragrance' -> Police Women Be Younique Fragrance Set (Personal Care); 'perfume' -> Versace Women Bright Crystal Perfume (Personal Care)
+
+[Test 3] Testing 'Kenneth Cole' brand search preservation...
+PASS: 'Kenneth Cole' search properly preserved: 'Kenneth Cole Men Black Dial Chronograph Watch' (Brand: Kenneth Cole, Category: Accessories)
+
+[Test 4] Testing typo correction for 'runing shoes' and 'running sheo'...
+PASS: Typo corrections properly resolve to Footwear running shoes.
+
+[Test 5] Testing synonym expansion for 'sneakers'...
+PASS: 'sneakers' expanded to Footwear: ['Puma Men Fox Black Sports Shoes', 'ADIDAS Men Athlos Sports Shoes', 'F Sports Men Black Charger Shoes']
+
+[Test 6] Testing out-of-vocabulary query handling...
+PASS: Out-of-vocabulary query safely returns 0 results with no fabricated matches.
+
+[Test 7] Testing Web Catalog route with search filtering & pagination...
+PASS: Web catalog route filters, sorts, and paginates search queries successfully.
+
+[Test 8] Checking ML Evaluation Dashboard linguistic test status...
+PASS: Evaluation dashboard search test for 'cologne' PASSED: Top match is 'Versace Women Bright Crystal Perfume' (Personal Care)
+
+[Test 9] Verifying Oracle 26ai read-only state...
+PASS: Oracle 26ai data confirmed untouched (35,254 products, 18,950 orders).
+
+===========================================================================
+ALL 9 REGRESSION TESTS PASSED WITH 100% SUCCESS!
+===========================================================================
