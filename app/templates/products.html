@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if search_query %}
+    "{{ search_query }}" — Smart Catalog — Cartify
+{% elif selected_category %}
+    {{ selected_category }} — Catalog — Cartify
+{% else %}
+    Smart Product Catalog — Cartify
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+
+    <!-- Breadcrumb & Catalog Title Hierarchy (Stitch Screen 4) -->
+    <div class="pt-2 pb-3 flex-column gap-1">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.products') }}" class="text-decoration-none">Catalog</a></li>
+                {% if selected_category %}
+                <li class="breadcrumb-item active">{{ selected_category }}</li>
+                {% endif %}
+                {% if search_query %}
+                <li class="breadcrumb-item active">Search: "{{ search_query }}"</li>
+                {% endif %}
+            </ol>
+        </nav>
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 pt-1">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1">
+                    {% if search_query %}
+                        Results for "<span class="text-primary">{{ search_query }}</span>"
+                    {% elif selected_category %}
+                        {{ selected_category }} Collection
+                    {% else %}
+                        Curated Catalog &amp; Products
+                    {% endif %}
+                </h1>
+                <p class="text-muted small mb-0">
+                    Explore lifestyle essentials, footwear, apparel, and personal care powered by Oracle 26ai and Machine Learning.
+                </p>
+            </div>
+
+            <!-- Search Strategy Switcher Pills (Preserves filters) -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small fw-bold d-none d-sm-inline">Search Strategy:</span>
+                <div class="strategy-pill-group">
+                    <a href="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy='hybrid') }}" 
+                       class="strategy-pill {% if search_strategy == 'hybrid' or not search_strategy %}active{% endif %}">
+                        Hybrid Semantic
+                    </a>
+                    <a href="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy='semantic') }}" 
+                       class="strategy-pill {% if search_strategy == 'semantic' %}active{% endif %}">
+                        Dense Semantic
+                    </a>
+                    <a href="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy='lexical') }}" 
+                       class="strategy-pill {% if search_strategy == 'lexical' %}active{% endif %}">
+                        Lexical TF-IDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Top Control Bar (Stitch Screen 4) -->
+    <div class="catalog-control-bar">
+        <div class="row align-items-center g-3">
+            <!-- Left: Counter & Active Filter Chips -->
+            <div class="col-lg-8">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="fw-bold text-dark small me-2" id="item-count-label">
+                        Showing {{ items|length }} of {{ '{:,}'.format(total_items) }} items (Page {{ page }} of {{ total_pages }})
+                    </span>
+
+                    {% if selected_category %}
+                    <span class="active-chip-pill">
+                        <span>{{ selected_category }}</span>
+                        <a href="{{ url_for('main.products', q=search_query, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}" class="text-decoration-none">&times;</a>
+                    </span>
+                    {% endif %}
+
+                    {% if selected_brand %}
+                    <span class="active-chip-pill">
+                        <span>Brand: {{ selected_brand }}</span>
+                        <a href="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}" class="text-decoration-none">&times;</a>
+                    </span>
+                    {% endif %}
+
+                    {% if selected_gender %}
+                    <span class="active-chip-pill">
+                        <span>Gender: {{ selected_gender }}</span>
+                        <a href="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}" class="text-decoration-none">&times;</a>
+                    </span>
+                    {% endif %}
+
+                    {% if selected_min_rating %}
+                    <span class="active-chip-pill">
+                        <span>Rating: {{ selected_min_rating }}★+</span>
+                        <a href="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, sort=selected_sort, strategy=search_strategy) }}" class="text-decoration-none">&times;</a>
+                    </span>
+                    {% endif %}
+
+                    {% if selected_category or selected_brand or selected_gender or selected_min_rating or selected_min_price or selected_max_price or search_query %}
+                    <a href="{{ url_for('main.products') }}" class="small fw-semibold text-danger text-decoration-none ms-1">
+                        Clear All
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right: Sort Selector -->
+            <div class="col-lg-4 d-flex justify-content-lg-end align-items-center gap-2">
+                <label class="small text-muted fw-bold text-nowrap mb-0" for="sort-dropdown">Sort by:</label>
+                <select class="form-select form-select-sm rounded-pill w-auto border" id="sort-dropdown" onchange="location = this.value;">
+                    <option value="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort='popular', strategy=search_strategy) }}" {% if selected_sort == 'popular' or not selected_sort %}selected{% endif %}>Most Popular / Featured</option>
+                    <option value="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort='rating', strategy=search_strategy) }}" {% if selected_sort == 'rating' %}selected{% endif %}>Highest Customer Rating</option>
+                    <option value="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort='price_asc', strategy=search_strategy) }}" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort='price_desc', strategy=search_strategy) }}" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="{{ url_for('main.products', q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort='newest', strategy=search_strategy) }}" {% if selected_sort == 'newest' %}selected{% endif %}>Newest Additions</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Two-Column Layout (Faceted Sidebar + Product Grid) -->
+    <div class="row g-4 items-start">
+
+        <!-- Left Sidebar: Faceted Architectural Filters (Col 3 on desktop) -->
+        <aside class="col-lg-3">
+            <form action="{{ url_for('main.products') }}" method="GET" class="filter-sidebar-card d-flex flex-column gap-4">
+                <input type="hidden" name="strategy" value="{{ search_strategy }}">
+                <input type="hidden" name="sort" value="{{ selected_sort }}">
+
+                <!-- Header & Reset -->
+                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
+                    <span class="fw-bold text-dark d-flex align-items-center gap-1.5" style="font-size: 0.95rem;">
+                        <span class="material-symbols-outlined text-primary fs-5">tune</span>
+                        <span>Refine Filters</span>
+                    </span>
+                    <a href="{{ url_for('main.products') }}" class="small text-muted text-decoration-none hover-primary">
+                        Reset
+                    </a>
+                </div>
+
+                <!-- Search Input in Results -->
+                <div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control border-start-0" placeholder="Search in catalog..." value="{{ search_query }}">
+                    </div>
+                </div>
+
+                <!-- Category Facet -->
+                <div>
+                    <div class="filter-section-title">
+                        <span>Categories</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="{{ url_for('main.products', q=search_query, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}" 
+                           class="filter-checkbox-row text-decoration-none {% if not selected_category %}bg-light fw-bold text-primary{% else %}text-dark{% endif %}">
+                            <span class="small">All Categories</span>
+                            <span class="badge bg-white text-muted border small">{{ '{:,}'.format(total_items) }}</span>
+                        </a>
+                        {% for cat in categories %}
+                        <a href="{{ url_for('main.products', category=cat.category, q=search_query, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}" 
+                           class="filter-checkbox-row text-decoration-none {% if selected_category == cat.category %}bg-light fw-bold text-primary{% else %}text-dark{% endif %}">
+                            <span class="small text-truncate">{{ cat.category }}</span>
+                            <span class="badge bg-white text-muted border small">{{ '{:,}'.format(cat.count) }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Brand Facet -->
+                <div>
+                    <div class="filter-section-title">
+                        <span>Brand / Maker</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </div>
+                    <div class="d-flex flex-column gap-1" style="max-height: 180px; overflow-y: auto;">
+                        {% for b in brands %}
+                        <a href="{{ url_for('main.products', brand=b.brand, category=selected_category, q=search_query, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}" 
+                           class="filter-checkbox-row text-decoration-none {% if selected_brand == b.brand %}bg-light fw-bold text-primary{% else %}text-dark{% endif %}">
+                            <span class="small text-truncate">{{ b.brand }}</span>
+                            <span class="badge bg-white text-muted border small">{{ '{:,}'.format(b.count) }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Gender / Audience Facet -->
+                <div>
+                    <div class="filter-section-title">
+                        <span>Target Audience</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for g in genders %}
+                        <a href="{{ url_for('main.products', gender=g.gender, category=selected_category, brand=selected_brand, q=search_query, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}" 
+                           class="btn btn-sm {% if selected_gender == g.gender %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-3 py-1 mb-1" style="font-size: 0.78rem;">
+                            {{ g.gender }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Price Bracket (INR) -->
+                <div>
+                    <div class="filter-section-title">
+                        <span>Price Bracket (&#8377;)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">&#8377;</span>
+                            <input type="number" name="min_price" class="form-control" placeholder="Min" value="{{ selected_min_price }}">
+                        </div>
+                        <span class="text-muted">—</span>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">&#8377;</span>
+                            <input type="number" name="max_price" class="form-control" placeholder="Max" value="{{ selected_max_price }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Rating -->
+                <div>
+                    <div class="filter-section-title">
+                        <span>Minimum Rating</span>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="{{ url_for('main.products', min_rating='4', category=selected_category, brand=selected_brand, gender=selected_gender, q=search_query, min_price=selected_min_price, max_price=selected_max_price, sort=selected_sort, strategy=search_strategy) }}" 
+                           class="filter-checkbox-row text-decoration-none {% if selected_min_rating == '4' %}bg-light fw-bold text-primary{% else %}text-dark{% endif %}">
+                            <div class="d-flex align-items-center gap-1 text-warning small">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star text-muted"></i>
+                                <span class="text-dark ms-1">4.0 &amp; above</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('main.products', min_rating='3', category=selected_category, brand=selected_brand, gender=selected_gender, q=search_query, min_price=selected_min_price, max_price=selected_max_price, sort=selected_sort, strategy=search_strategy) }}" 
+                           class="filter-checkbox-row text-decoration-none {% if selected_min_rating == '3' %}bg-light fw-bold text-primary{% else %}text-dark{% endif %}">
+                            <div class="d-flex align-items-center gap-1 text-warning small">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star text-muted"></i>
+                                <i class="bi bi-star text-muted"></i>
+                                <span class="text-dark ms-1">3.0 &amp; above</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex flex-column gap-2 pt-2 border-top">
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-1.5 shadow-sm">
+                        <i class="bi bi-funnel-fill"></i>
+                        <span>Apply Filters</span>
+                    </button>
+                    <a href="{{ url_for('main.products') }}" class="btn btn-outline-secondary btn-sm rounded-pill py-1.5">
+                        Reset Filters
+                    </a>
+                </div>
+
+            </form>
+        </aside>
+
+        <!-- Main Content Area: Rich Product Grid (Col 9 on desktop) -->
+        <main class="col-lg-9">
+            {% if items %}
+            <!-- 3-Column Responsive Grid -->
+            <div class="row g-4">
+                {% for item in items %}
+                <div class="col-md-6 col-xl-4">
+                    <article class="affinity-product-card">
+                        <div>
+                            <!-- Visual Box -->
+                            <div class="product-img-box position-relative overflow-hidden">
+                                <a href="{{ url_for('main.product_detail', product_id=item.product_id) }}" class="product-img-wrapper d-block w-100 h-100 text-decoration-none">
+                                    <img src="{{ item.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ item.product_name }}" onerror="this.onerror=null; this.src='https://placehold.co/400x400?text=Product';">
+                                </a>
+                                
+                                {% if item.discount_percent and item.discount_percent > 0 %}
+                                <span class="badge bg-danger rounded-pill position-absolute top-2 start-2 shadow-xs" style="font-size: 0.7rem; top: 10px; left: 10px; pointer-events: none;">
+                                    {{ item.discount_percent|int }}% OFF
+                                </span>
+                                {% elif item.similarity_score %}
+                                <span class="affinity-match-pill" style="pointer-events: none;">
+                                    {{ item.similarity_score|int }}% Match
+                                </span>
+                                {% endif %}
+
+                                <!-- Wishlist Toggle Button -->
+                                <form action="{{ url_for('auth.wishlist_toggle', product_id=item.product_id) }}" method="POST" class="d-inline position-absolute" style="top: 10px; right: 10px; z-index: 5;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-wishlist-heart {% if item.product_id in wishlist_ids %}active{% endif %}" title="Save to wishlist">
+                                        <i class="bi {% if item.product_id in wishlist_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Brand & Category -->
+                            <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.04em;">
+                                {{ item.brand or 'Cartify' }} &bull; {{ item.category }}
+                            </span>
+
+                            <!-- Title -->
+                            <h6 class="fw-bold mb-1 mt-0.5" style="line-height: 1.35;">
+                                <a href="{{ url_for('main.product_detail', product_id=item.product_id) }}" class="text-dark text-decoration-none text-truncate d-block" title="{{ item.product_name }}">
+                                    {{ item.product_name }}
+                                </a>
+                            </h6>
+
+                            <!-- Ratings -->
+                            <div class="d-flex align-items-center gap-1 text-warning small mb-2">
+                                <i class="bi bi-star-fill text-warning" style="font-size: 0.75rem;"></i>
+                                <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ item.rating or '4.5' }}</span>
+                                <span class="text-muted" style="font-size: 0.72rem;">({{ item.review_count or 60 }})</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer: Pricing & Action -->
+                        <div class="pt-2 border-top mt-1 d-flex align-items-center justify-content-between">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex align-items-baseline gap-1.5">
+                                    <span class="fw-bold text-primary fs-5">&#8377;{{ "%.2f"|format(item.sale_price_inr or item.price_inr) }}</span>
+                                    {% if item.sale_price_inr and item.sale_price_inr < item.price_inr %}
+                                    <span class="text-muted text-decoration-line-through small" style="font-size: 0.75rem;">&#8377;{{ "%.2f"|format(item.price_inr) }}</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-success fw-medium" style="font-size: 0.7rem;">
+                                    {% if item.stock_quantity and item.stock_quantity > 0 %}
+                                    <i class="bi bi-check-circle-fill me-0.5"></i>In Stock ({{ item.stock_quantity }})
+                                    {% else %}
+                                    <span class="text-muted">Out of stock</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <form action="{{ url_for('cart.add_to_cart', product_id=item.product_id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 d-flex align-items-center gap-1 shadow-sm">
+                                    <i class="bi bi-bag-plus"></i>
+                                    <span>Add</span>
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination Bar (Stitch Screen 4) -->
+            {% if total_pages > 1 %}
+            <nav class="d-flex justify-content-center mt-5" aria-label="Catalog Page Navigation">
+                <ul class="pagination pagination-sm shadow-sm rounded-pill overflow-hidden">
+                    <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                        <a class="page-link px-3" href="{{ url_for('main.products', page=page-1, q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}">
+                            &laquo; Previous
+                        </a>
+                    </li>
+
+                    {% set start_page = [1, page - 2]|max %}
+                    {% set end_page = [total_pages, start_page + 4]|min %}
+                    {% for p_num in range(start_page, end_page + 1) %}
+                    <li class="page-item {% if p_num == page %}active{% endif %}">
+                        <a class="page-link px-3" href="{{ url_for('main.products', page=p_num, q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}">
+                            {{ p_num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+
+                    <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                        <a class="page-link px-3" href="{{ url_for('main.products', page=page+1, q=search_query, category=selected_category, subcategory=selected_subcategory, brand=selected_brand, gender=selected_gender, min_price=selected_min_price, max_price=selected_max_price, min_rating=selected_min_rating, sort=selected_sort, strategy=search_strategy) }}">
+                            Next &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- Proper Actionable Empty State (Stitch Screen 4) -->
+            <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4">
+                <div class="avatar-circle mx-auto mb-3 bg-light text-muted" style="width: 72px; height: 72px;">
+                    <i class="bi bi-search fs-2"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">No Products Found</h4>
+                <p class="text-muted small mb-4 mx-auto" style="max-width: 480px;">
+                    {% if search_query %}
+                    No Matching Products Found for "<span class="fw-bold text-dark">{{ search_query }}</span>" with the currently applied filters. Try adjusting your search query or reset your filters.
+                    {% else %}
+                    No Matching Products Found matching the selected filter combination.
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-center gap-3 mb-4">
+                    <a href="{{ url_for('main.products') }}" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Reset All Filters
+                    </a>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        Back to Homepage
+                    </a>
+                </div>
+
+                <div class="pt-4 border-top mt-2">
+                    <p class="small text-muted mb-2 fw-medium">Try these popular fashion &amp; lifestyle searches:</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <a href="{{ url_for('main.products', q='running shoes') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">running shoes</a>
+                        <a href="{{ url_for('main.products', q='watches') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">watches</a>
+                        <a href="{{ url_for('main.products', q='perfume') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">perfume</a>
+                        <a href="{{ url_for('main.products', q='sneakers') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">sneakers</a>
+                        <a href="{{ url_for('main.products', q='t-shirt') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">t-shirt</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </main>
+
+    </div>
+
+</div>
+{% endblock %}

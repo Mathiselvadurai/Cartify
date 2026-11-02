@@ -1,0 +1,223 @@
+{% extends "owner_base.html" %}
+
+{% block title %}Products Management — Store Owner Portal — Cartify{% endblock %}
+{% block header_title %}Products Management{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="h3 fw-bold text-white mb-0" style="letter-spacing: -0.02em;">Product Catalog &amp; SKU Admin</h1>
+            <span class="badge owner-badge-mint rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.72rem;">
+                Oracle Database 26ai
+            </span>
+        </div>
+        <p class="text-secondary small mb-0" style="color: var(--owner-text-muted) !important;">
+            Publish new inventory, edit pricing and merchandising attributes, toggle visibility, and maintain catalog health.
+        </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('owner.inventory') }}" class="btn btn-sm btn-outline-secondary px-3 rounded-3 text-light" style="background-color: var(--owner-surface); border-color: var(--owner-border);">
+            <i class="bi bi-warehouse me-1"></i>Warehouse Inventory
+        </a>
+        <a href="{{ url_for('owner.product_new') }}" class="btn btn-sm px-3 rounded-3 d-flex align-items-center gap-1.5 fw-semibold" style="background-color: var(--owner-accent); color: #0C191D; box-shadow: var(--cartify-shadow-mint);">
+            <span class="material-symbols-outlined fs-6">add</span>
+            <span class="small">Add New Product</span>
+        </a>
+    </div>
+</div>
+
+<!-- Filters & Search Toolbar -->
+<div class="owner-card p-3 mb-4">
+    <form method="GET" action="{{ url_for('owner.products') }}" class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3" id="productFilterForm">
+        <!-- Search Input -->
+        <div class="input-group" style="max-width: 420px;">
+            <span class="input-group-text border-end-0" style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border); color: var(--owner-text-muted);">
+                <span class="material-symbols-outlined fs-6">search</span>
+            </span>
+            <input type="text" name="q" class="form-control border-start-0 text-white" placeholder="Search product name, brand, or SKU ID..." value="{{ search_query }}" style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+            {% if search_query %}
+                <a href="{{ url_for('owner.products', category=category_filter, active=active_filter, sort=sort_by) }}" class="input-group-text text-secondary" style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- Category Filter -->
+            <select name="category" class="form-select form-select-sm text-white" onchange="document.getElementById('productFilterForm').submit()" style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border); max-width: 200px;">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.category }}" {% if category_filter == cat.category %}selected{% endif %}>{{ cat.category }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Active Status Filter -->
+            <select name="active" class="form-select form-select-sm text-white" onchange="document.getElementById('productFilterForm').submit()" style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border); width: auto;">
+                <option value="all" {% if active_filter == 'all' %}selected{% endif %}>All Status</option>
+                <option value="active" {% if active_filter in ['active', '1'] %}selected{% endif %}>Active Only</option>
+                <option value="inactive" {% if active_filter in ['inactive', '0'] %}selected{% endif %}>Inactive Only</option>
+            </select>
+
+            <!-- Sort Select -->
+            <select name="sort" class="form-select form-select-sm text-white" onchange="document.getElementById('productFilterForm').submit()" style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border); width: auto;">
+                <option value="id_desc" {% if sort_by == 'id_desc' %}selected{% endif %}>ID: Newest First</option>
+                <option value="id_asc" {% if sort_by == 'id_asc' %}selected{% endif %}>ID: Oldest First</option>
+                <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name: A to Z</option>
+                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                <option value="stock_asc" {% if sort_by == 'stock_asc' %}selected{% endif %}>Stock: Low to High</option>
+            </select>
+
+            {% if search_query or category_filter or active_filter != 'all' %}
+                <a href="{{ url_for('owner.products') }}" class="btn btn-sm btn-link text-info text-decoration-none p-1">
+                    Clear
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Products Table -->
+<div class="owner-card mb-4 overflow-hidden shadow-sm">
+    <div class="table-responsive">
+        <table class="table owner-table mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Product Details</th>
+                    <th>Category &amp; Taxonomy</th>
+                    <th>Retail Price</th>
+                    <th>On-Hand Stock</th>
+                    <th>Visibility</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if p.image_url and p.image_url.startswith('http') %}
+                                    <img src="{{ p.image_url }}" alt="{{ p.product_name }}" class="rounded-2 object-fit-cover flex-shrink-0" style="width: 44px; height: 44px;" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/placeholder.png') }}';">
+                                {% else %}
+                                    <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: var(--owner-surface-elevated); color: var(--owner-text-muted);">
+                                        <span class="material-symbols-outlined fs-5">inventory_2</span>
+                                    </div>
+                                {% endif %}
+                                <div class="overflow-hidden">
+                                    <div class="fw-semibold text-white text-truncate" style="max-width: 260px;" title="{{ p.product_name }}">
+                                        {{ p.product_name }}
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-0.5">
+                                        <span class="small font-monospace" style="color: var(--owner-text-subtle); font-size: 0.72rem;">
+                                            #{{ p.product_id }}
+                                        </span>
+                                        <span class="small text-truncate" style="color: var(--owner-text-muted); font-size: 0.72rem;">
+                                            {{ p.brand }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-white small fw-medium">{{ p.category }}</div>
+                            <div class="small" style="color: var(--owner-text-subtle); font-size: 0.72rem;">
+                                {{ p.subcategory or p.product_type or 'General Merchandise' }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-white font-monospace">
+                                ₹{{ "{:,.2f}".format(p.price_inr) }}
+                            </div>
+                            {% if p.sale_price_inr and p.sale_price_inr < p.price_inr %}
+                                <div class="small text-success font-monospace" style="font-size: 0.72rem;">
+                                    Sale: ₹{{ "{:,.2f}".format(p.sale_price_inr) }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-semibold {% if p.stock_quantity == 0 %}text-danger{% elif p.stock_quantity <= 35 %}text-warning{% else %}text-info{% endif %}">
+                                {{ p.stock_quantity }} units
+                            </div>
+                            <div class="small" style="color: var(--owner-text-subtle); font-size: 0.7rem;">
+                                {{ p.sales_count or 0 }} lifetime sold
+                            </div>
+                        </td>
+                        <td>
+                            {% if p.is_active == 1 %}
+                                <span class="badge owner-badge-mint rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                                    <i class="bi bi-eye-fill me-1"></i>Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary text-light rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                                    <i class="bi bi-eye-slash-fill me-1"></i>Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-inline-flex align-items-center gap-1.5">
+                                <a href="{{ url_for('main.product_detail', product_id=p.product_id) }}" target="_blank" class="btn btn-sm btn-outline-secondary p-1 rounded-2 text-light" title="View Storefront PDP">
+                                    <span class="material-symbols-outlined fs-6">storefront</span>
+                                </a>
+                                <a href="{{ url_for('owner.product_edit', product_id=p.product_id) }}" class="btn btn-sm btn-outline-info p-1 px-2 rounded-2 fw-semibold" title="Edit Product Details">
+                                    <i class="bi bi-pencil-fill me-1"></i>Edit
+                                </a>
+                                <form method="POST" action="{{ url_for('owner.product_toggle_active', product_id=p.product_id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm {% if p.is_active == 1 %}btn-outline-danger{% else %}btn-outline-success{% endif %} p-1 rounded-2" title="{% if p.is_active == 1 %}Deactivate Product{% else %}Activate Product{% endif %}">
+                                        <i class="bi {% if p.is_active == 1 %}bi-pause-circle{% else %}bi-play-circle{% endif %}"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-secondary">
+                            <span class="material-symbols-outlined fs-1 text-secondary d-block mb-2">inventory</span>
+                            <div class="fw-semibold text-white">No products found matching query.</div>
+                            <a href="{{ url_for('owner.product_new') }}" class="btn btn-sm btn-info text-dark rounded-pill mt-3 fw-semibold">
+                                Create New Product
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Table Footer / Pagination -->
+    <div class="p-3 bg-dark bg-opacity-50 border-top border-secondary border-opacity-25 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2 small" style="color: var(--owner-text-muted);">
+        <div>
+            Showing <strong>{{ products|length }}</strong> of <strong>{{ "{:,}".format(total_matching) }}</strong> products (Page {{ page }} of {{ total_pages }})
+        </div>
+
+        {% if total_pages > 1 %}
+            <nav aria-label="Products Pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                        <a class="page-link bg-transparent text-light border-secondary" href="{{ url_for('owner.products', q=search_query, category=category_filter, active=active_filter, sort=sort_by, page=page-1) }}">
+                            &laquo;
+                        </a>
+                    </li>
+                    {% for p in range([1, page-2]|max, [total_pages+1, page+3]|min) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link {% if p == page %}bg-info border-info text-dark fw-bold{% else %}bg-transparent text-light border-secondary{% endif %}" href="{{ url_for('owner.products', q=search_query, category=category_filter, active=active_filter, sort=sort_by, page=p) }}">
+                                {{ p }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                        <a class="page-link bg-transparent text-light border-secondary" href="{{ url_for('owner.products', q=search_query, category=category_filter, active=active_filter, sort=sort_by, page=page+1) }}">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

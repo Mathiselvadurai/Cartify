@@ -1,0 +1,352 @@
+{% extends "owner_base.html" %}
+
+{% block title %}{% if mode == 'create' %}Add New Product{% else %}Edit Product #{{ product.product_id }}{% endif %} — Store Owner Portal — Cartify{% endblock %}
+{% block header_title %}{% if mode == 'create' %}Add Product{% else %}Edit Product #{{ product.product_id }}{% endif %}{% endblock %}
+
+{% block content %}
+<form method="POST" action="{% if mode == 'create' %}{{ url_for('owner.product_new') }}{% else %}{{ url_for('owner.product_edit', product_id=product.product_id) }}{% endif %}" id="productForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- Form Top Bar -->
+    <div class="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge owner-badge-mint rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.72rem;">
+                    Catalog Lifecycle
+                </span>
+                <span class="small" style="color: var(--owner-text-muted);">
+                    {% if mode == 'create' %}New SKU Entry{% else %}SKU: #{{ product.product_id }}{% endif %}
+                </span>
+            </div>
+            <h1 class="h3 fw-bold text-white mb-0" style="letter-spacing: -0.02em;">
+                {% if mode == 'create' %}Add New Product{% else %}Edit Product: {{ product.product_name }}{% endif %}
+            </h1>
+            <p class="text-secondary small mb-0" style="color: var(--owner-text-muted) !important;">
+                Enter product details, pricing, inventory parameters, and product media for store catalog management.
+            </p>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('owner.products') }}" class="btn btn-sm btn-outline-secondary px-3 rounded-3 text-light" style="background-color: var(--owner-surface); border-color: var(--owner-border);">
+                Discard &amp; Exit
+            </a>
+            <button type="submit" class="btn btn-sm px-4 rounded-3 d-flex align-items-center gap-2 fw-semibold" style="background-color: var(--owner-accent); color: #0C191D; box-shadow: var(--cartify-shadow-mint);">
+                <span class="material-symbols-outlined fs-6">rocket_launch</span>
+                <span>{% if mode == 'create' %}Publish Product{% else %}Save Changes &amp; Sync DB{% endif %}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Grid (Section 1 Basic Info + Section 2 Media) -->
+    <div class="row g-4 mb-4">
+        <!-- Left Column: Section 1 Basic Information (7 cols) -->
+        <div class="col-12 col-lg-7">
+            <div class="owner-card p-4 h-100 d-flex flex-column gap-3">
+                <div class="d-flex align-items-center justify-content-between pb-2 border-bottom border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-2 p-1.5 d-flex align-items-center justify-content-center" style="background-color: var(--owner-surface-elevated); color: var(--owner-accent);">
+                            <span class="material-symbols-outlined fs-5">description</span>
+                        </div>
+                        <h2 class="h5 fw-bold text-white mb-0">1. Basic Product Information</h2>
+                    </div>
+                    <span class="small text-danger fw-semibold" style="font-size: 0.75rem;">Required Fields Marked *</span>
+                </div>
+
+                <!-- Product Name -->
+                <div>
+                    <label for="product_name" class="form-label small fw-semibold text-white">
+                        Product Title / Nomenclature <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control text-white" id="product_name" name="product_name" required maxlength="255"
+                           value="{{ form_data.get('product_name', product.product_name if product else '') }}"
+                           placeholder="e.g. Aura Pro Studio Wireless ANC Headphones"
+                           style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                    <div class="form-text small" style="color: var(--owner-text-subtle);">Customer-facing retail headline displayed on storefront viewports.</div>
+                </div>
+
+                <!-- Category & Brand Row -->
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label for="category" class="form-label small fw-semibold text-white">
+                            Taxonomic Category <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control text-white" id="category" name="category" list="categoryOptions" required
+                               value="{{ form_data.get('category', product.category if product else '') }}"
+                               placeholder="e.g. Footwear, Audio, Apparel"
+                               style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                        <datalist id="categoryOptions">
+                            {% for c in categories %}
+                                <option value="{{ c.category }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                        <label for="brand" class="form-label small fw-semibold text-white">
+                            Brand / Artisan Maker <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control text-white" id="brand" name="brand" required
+                               value="{{ form_data.get('brand', product.brand if product else '') }}"
+                               placeholder="e.g. Puma, Nike, Apex Studio"
+                               style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                    </div>
+                </div>
+
+                <!-- Subcategory & Product Type Row -->
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label for="subcategory" class="form-label small fw-semibold text-white">Subcategory</label>
+                        <input type="text" class="form-control text-white" id="subcategory" name="subcategory"
+                               value="{{ form_data.get('subcategory', product.subcategory if product else '') }}"
+                               placeholder="e.g. Shoes, Headphones, Accessories"
+                               style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                        <label for="product_type" class="form-label small fw-semibold text-white">Product Type</label>
+                        <input type="text" class="form-control text-white" id="product_type" name="product_type"
+                               value="{{ form_data.get('product_type', product.product_type if product else '') }}"
+                               placeholder="e.g. Running Shoes, Over-Ear"
+                               style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="product_description" class="form-label small fw-semibold text-white">
+                        Detailed Narrative &amp; Specifications
+                    </label>
+                    <textarea class="form-control text-white" id="product_description" name="product_description" rows="4"
+                              placeholder="Comprehensive description, materials, specifications, and design highlights..."
+                              style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">{{ form_data.get('product_description', product.product_description if product else '') }}</textarea>
+                </div>
+
+                <!-- Search Keywords / Discoverability Tags -->
+                <div>
+                    <label for="search_keywords" class="form-label small fw-semibold text-white">
+                        Search Keywords &amp; Intent Tags
+                    </label>
+                    <input type="text" class="form-control text-white" id="search_keywords" name="search_keywords"
+                           value="{{ form_data.get('search_keywords', product.search_keywords if product else '') }}"
+                           placeholder="e.g. wireless, bluetooth, running, sports, comfortable"
+                           style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                    <div class="form-text small" style="color: var(--owner-text-subtle);">Indexed in recommender system and TF-IDF search index.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Section 2 Product Media & Image Preview (5 cols) -->
+        <div class="col-12 col-lg-5">
+            <div class="owner-card p-4 h-100 d-flex flex-column gap-3 justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between pb-2 border-bottom border-secondary border-opacity-25 mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-2 p-1.5 d-flex align-items-center justify-content-center" style="background-color: var(--owner-surface-elevated); color: var(--owner-accent);">
+                                <span class="material-symbols-outlined fs-5">photo_library</span>
+                            </div>
+                            <h2 class="h5 fw-bold text-white mb-0">2. Product Media &amp; Assets</h2>
+                        </div>
+                        <span class="badge owner-badge-mint rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">Live Asset</span>
+                    </div>
+
+                    <!-- Image URL Input -->
+                    <div class="mb-3">
+                        <label for="image_url" class="form-label small fw-semibold text-white">Hero Image URL</label>
+                        <input type="url" class="form-control text-white" id="image_url" name="image_url"
+                               value="{{ form_data.get('image_url', product.image_url if product else '') }}"
+                               placeholder="https://example.com/images/product.jpg"
+                               style="background-color: var(--owner-surface-elevated); border-color: var(--owner-border);">
+                        <div class="form-text small" style="color: var(--owner-text-subtle);">Direct HTTPS asset URL for storefront product cards and PDP zoom.</div>
+                    </div>
+
+                    <!-- Live Image Preview Card -->
+                    <div class="p-3 rounded-3 text-center" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                        <div class="small fw-semibold text-secondary mb-2">Display Asset Preview</div>
+                        <div class="d-inline-block rounded-3 overflow-hidden shadow-sm" style="width: 180px; height: 180px; background-color: var(--owner-border);">
+                            <img id="imagePreview" 
+                                 src="{{ form_data.get('image_url', product.image_url if product and product.image_url else '/static/img/placeholder.png') }}" 
+                                 alt="Preview" 
+                                 class="w-100 h-100 object-fit-cover"
+                                 onerror="this.onerror=null;this.src='/static/img/placeholder.png';">
+                        </div>
+                        <div class="small mt-2" style="color: var(--owner-text-subtle); font-size: 0.75rem;">1:1 Aspect Ratio · Rendered in Web Storefront</div>
+                    </div>
+                </div>
+
+                <!-- Database Metadata Notice -->
+                <div class="p-3 rounded-3 mt-3 d-flex align-items-center gap-2" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                    <span class="material-symbols-outlined text-info fs-5">database</span>
+                    <div class="small" style="color: var(--owner-text-muted);">
+                        Synchronizes automatically with Oracle 26ai table <code>PRODUCTS</code>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Pricing, Inventory & Stock Buffer -->
+    <div class="owner-card p-4 mb-4">
+        <div class="d-flex align-items-center justify-content-between pb-2 border-bottom border-secondary border-opacity-25 mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-2 p-1.5 d-flex align-items-center justify-content-center" style="background-color: var(--owner-surface-elevated); color: var(--owner-accent);">
+                    <span class="material-symbols-outlined fs-5">currency_exchange</span>
+                </div>
+                <div>
+                    <h2 class="h5 fw-bold text-white mb-0">3. Pricing, Inventory &amp; Stock Buffer</h2>
+                    <div class="small" style="color: var(--owner-text-muted);">Configures retail commerce ledger triggers and safety stock vigilance.</div>
+                </div>
+            </div>
+            <span class="badge owner-badge-mint rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.72rem;">
+                Atomic Sequence Protected
+            </span>
+        </div>
+
+        <div class="row g-4">
+            <!-- 1. Retail Price -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                    <label for="price_inr" class="form-label small fw-semibold text-white d-flex align-items-center justify-content-between">
+                        <span>Unit Retail Price (INR)</span>
+                        <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0 fw-bold" style="background-color: var(--owner-surface); border-color: var(--owner-border); color: var(--owner-accent);">₹</span>
+                        <input type="number" step="0.01" min="1" class="form-control text-white fw-bold fs-5" id="price_inr" name="price_inr" required
+                               value="{{ form_data.get('price_inr', product.price_inr if product else '999.00') }}"
+                               style="background-color: var(--owner-surface); border-color: var(--owner-border);">
+                    </div>
+                    <div class="small mt-2" style="color: var(--owner-text-subtle); font-size: 0.72rem;">Regular base retail catalog price.</div>
+                </div>
+            </div>
+
+            <!-- 2. Sale Price -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                    <label for="sale_price_inr" class="form-label small fw-semibold text-white d-flex align-items-center justify-content-between">
+                        <span>Sale / Promotional Price</span>
+                        <span class="small text-secondary">(Optional)</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0 fw-bold" style="background-color: var(--owner-surface); border-color: var(--owner-border); color: #20B8A9;">₹</span>
+                        <input type="number" step="0.01" min="0" class="form-control text-white fw-bold fs-5" id="sale_price_inr" name="sale_price_inr"
+                               value="{{ form_data.get('sale_price_inr', product.sale_price_inr if product and product.sale_price_inr else '') }}"
+                               placeholder="Optional discount"
+                               style="background-color: var(--owner-surface); border-color: var(--owner-border);">
+                    </div>
+                    <div class="small mt-2" style="color: var(--owner-text-subtle); font-size: 0.72rem;">Must be &le; regular retail price.</div>
+                </div>
+            </div>
+
+            <!-- 3. Stock Quantity -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                    <label for="stock_quantity" class="form-label small fw-semibold text-white d-flex align-items-center justify-content-between">
+                        <span>On-Hand Central Stock</span>
+                        <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <button class="btn btn-outline-secondary text-light" type="button" onclick="document.getElementById('stock_quantity').value = Math.max(0, parseInt(document.getElementById('stock_quantity').value||0) - 5); updateComputedStockBadge();">-</button>
+                        <input type="number" min="0" class="form-control text-center text-white fw-bold fs-5" id="stock_quantity" name="stock_quantity" required
+                               value="{{ form_data.get('stock_quantity', product.stock_quantity if product else '50') }}"
+                               oninput="updateComputedStockBadge()"
+                               style="background-color: var(--owner-surface); border-color: var(--owner-border);">
+                        <button class="btn btn-outline-secondary text-light" type="button" onclick="document.getElementById('stock_quantity').value = parseInt(document.getElementById('stock_quantity').value||0) + 5; updateComputedStockBadge();">+</button>
+                    </div>
+                    <div class="small mt-2" style="color: var(--owner-text-subtle); font-size: 0.72rem;">Physical verified warehouse inventory units.</div>
+                </div>
+            </div>
+
+            <!-- 4. Computed State Badge -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                    <div class="small fw-semibold text-white d-flex align-items-center justify-content-between">
+                        <span>Computed Inventory State</span>
+                        <span class="material-symbols-outlined fs-6 text-secondary">analytics</span>
+                    </div>
+                    <div class="py-2">
+                        <span id="formStockBadge" class="badge owner-badge-mint rounded-pill px-3 py-1.5 fs-6 fw-bold">
+                            In Stock (Healthy)
+                        </span>
+                        <div class="small mt-2" id="formStockHint" style="color: var(--owner-text-subtle); font-size: 0.72rem;">
+                            Sufficient buffer (&gt; 35 units)
+                        </div>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 4px; background-color: var(--owner-border);">
+                        <div id="formStockProgressBar" class="progress-bar bg-success" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storefront Visibility Toggle -->
+        <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="form-check form-switch d-flex align-items-center gap-3">
+                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
+                       {% if (form_data.get('is_active') in ['1', 'on', 'true']) or (product and product.is_active == 1) or (not product and form_data.get('is_active') is none) %}checked{% endif %}
+                       style="width: 2.8rem; height: 1.4rem; cursor: pointer;">
+                <label class="form-check-label text-white fw-semibold" for="is_active">
+                    Live Storefront Visibility (Publish to Catalog)
+                    <span class="small d-block fw-normal" style="color: var(--owner-text-muted);">
+                        When active, product renders in customer search, taxonomy collections, and algorithmic recommendations.
+                    </span>
+                </label>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('owner.products') }}" class="btn btn-outline-secondary px-3 py-2 rounded-3 text-light">Cancel</a>
+                <button type="submit" class="btn btn-info text-dark fw-bold px-4 py-2 rounded-3">
+                    <i class="bi bi-check2-circle me-1"></i>{% if mode == 'create' %}Publish SKU{% else %}Update SKU Record{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateComputedStockBadge() {
+    const qty = parseInt(document.getElementById('stock_quantity').value || 0);
+    const badge = document.getElementById('formStockBadge');
+    const hint = document.getElementById('formStockHint');
+    const bar = document.getElementById('formStockProgressBar');
+
+    if (qty === 0) {
+        badge.className = 'badge owner-badge-danger rounded-pill px-3 py-1.5 fs-6 fw-bold';
+        badge.textContent = 'Out of Stock';
+        hint.textContent = 'Depleted: Product will show sold out on storefront';
+        bar.className = 'progress-bar bg-danger';
+        bar.style.width = '0%';
+    } else if (qty <= 35) {
+        badge.className = 'badge owner-badge-warning rounded-pill px-3 py-1.5 fs-6 fw-bold';
+        badge.textContent = 'Low Stock Vigilance';
+        hint.textContent = 'Safety buffer alert active (<= 35 units)';
+        bar.className = 'progress-bar bg-warning';
+        bar.style.width = (qty / 35 * 100) + '%';
+    } else {
+        badge.className = 'badge owner-badge-mint rounded-pill px-3 py-1.5 fs-6 fw-bold';
+        badge.textContent = 'In Stock (Healthy)';
+        hint.textContent = 'Sufficient stock buffer (> 35 units)';
+        bar.className = 'progress-bar bg-success';
+        bar.style.width = Math.min(100, qty) + '%';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const imgInput = document.getElementById('image_url');
+    const preview = document.getElementById('imagePreview');
+    if (imgInput && preview) {
+        imgInput.addEventListener('input', function () {
+            if (this.value && this.value.startsWith('http')) {
+                preview.src = this.value;
+            } else {
+                preview.src = '/static/img/placeholder.png';
+            }
+        });
+    }
+
+    updateComputedStockBadge();
+});
+</script>
+{% endblock %}

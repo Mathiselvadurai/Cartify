@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmed #{{ order.order_id }} — Cartify{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Top Success Status Banner & Header (Stitch Screen 12) -->
+    <section class="text-center max-w-2xl mx-auto mb-4">
+        <div class="confirmation-hero-badge mx-auto">
+            <div class="confirmation-hero-check">
+                <i class="bi bi-check-lg"></i>
+            </div>
+        </div>
+
+        <div class="mb-2">
+            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 font-monospace" style="font-size: 0.8rem;">
+                <i class="bi bi-database-check me-1"></i> Oracle 26ai ACID Transaction Committed
+            </span>
+        </div>
+
+        <h1 class="cart-header-title mb-2">Thank you for your order!</h1>
+        <p class="text-muted small mb-3">
+            We've received your order and sent a confirmation receipt to 
+            <strong class="text-dark">{{ session.get('user', {}).get('email', 'your email address') }}</strong>.
+        </p>
+
+        <!-- Order Reference Chip -->
+        <div class="d-inline-flex align-items-center gap-2 bg-white border rounded-pill px-3 py-1.5 shadow-xs">
+            <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">Order ID</span>
+            <strong class="text-primary font-monospace" id="orderIdText">#{{ order.order_id }}</strong>
+            <button class="btn btn-sm btn-link p-0 text-muted hover-primary ms-1" onclick="navigator.clipboard.writeText('{{ order.order_id }}'); alert('Order ID #{{ order.order_id }} copied to clipboard!');" title="Copy Order ID">
+                <i class="bi bi-clipboard"></i>
+            </button>
+            <span class="text-muted small">&bull;</span>
+            <span class="text-muted small"><i class="bi bi-calendar-event me-1"></i> {{ order.order_date }}</span>
+        </div>
+    </section>
+
+    <!-- Main Layout: 2-Column Split (Stitch Screen 12) -->
+    <div class="row g-4 items-start">
+
+        <!-- Left Column: Items Ledger & Fulfillment Progress (Col 7) -->
+        <div class="col-lg-7">
+
+            <!-- Fulfillment Progress Card -->
+            <div class="cart-table-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Fulfillment Status</span>
+                        <h6 class="fw-bold text-dark mb-0">Estimated Delivery: {{ order.delivery_date }}</h6>
+                    </div>
+                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">
+                        <i class="bi bi-patch-check-fill me-1"></i> {{ order.order_status }}
+                    </span>
+                </div>
+
+                <!-- Milestone Tracker -->
+                <div class="milestone-tracker-bar">
+                    <div class="milestone-step-item done">
+                        <div class="milestone-step-bubble"><i class="bi bi-receipt"></i></div>
+                        <span class="small fw-bold text-dark">Confirmed</span>
+                        <span class="text-muted" style="font-size: 0.68rem;">Today</span>
+                    </div>
+
+                    <div class="milestone-step-item active">
+                        <div class="milestone-step-bubble"><i class="bi bi-box-seam"></i></div>
+                        <span class="small fw-bold text-primary">Packaging</span>
+                        <span class="text-primary" style="font-size: 0.68rem;">In Progress</span>
+                    </div>
+
+                    <div class="milestone-step-item">
+                        <div class="milestone-step-bubble"><i class="bi bi-truck"></i></div>
+                        <span class="small text-muted">Dispatch</span>
+                        <span class="text-muted" style="font-size: 0.68rem;">Pending</span>
+                    </div>
+
+                    <div class="milestone-step-item">
+                        <div class="milestone-step-bubble"><i class="bi bi-house-door"></i></div>
+                        <span class="small text-muted">Delivered</span>
+                        <span class="text-muted" style="font-size: 0.68rem;">{{ order.delivery_date }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchased Items Breakdown -->
+            <div class="cart-table-card mb-4">
+                <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
+                    <h6 class="fw-bold text-dark mb-0">Items Ordered ({{ items|length }})</h6>
+                    <span class="text-muted small">Standard Dispatch</span>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for itm in items %}
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded-3 bg-light border">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="{{ itm.image_url or url_for('static', filename='images/placeholder.jpg') }}" 
+                                 alt="{{ itm.product_name }}" 
+                                 class="order-review-thumb"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/80x80?text=Product';">
+                            <div>
+                                <span class="badge bg-white text-muted border text-uppercase" style="font-size: 0.62rem;">
+                                    {{ itm.brand or 'Cartify' }}
+                                </span>
+                                <h6 class="fw-bold mb-0 mt-0.5 text-truncate" style="max-width: 260px;">
+                                    {{ itm.product_name }}
+                                </h6>
+                                <span class="text-muted small" style="font-size: 0.72rem;">
+                                    Qty: <strong>{{ itm.quantity }}</strong> &times; ₹{{ '{:,.2f}'.format(itm.unit_price) }}
+                                </span>
+                            </div>
+                        </div>
+                        <span class="fw-bold text-dark fs-6">₹{{ '{:,.2f}'.format(itm.line_total) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Shipping & Payment Confirmation Card -->
+            <div class="cart-table-card">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-1.5 text-primary mb-1">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <span class="small text-uppercase fw-bold" style="font-size: 0.7rem;">Shipping Address</span>
+                        </div>
+                        <p class="fw-semibold text-dark small mb-0">{{ order.shipping_city }}, {{ order.shipping_state }}</p>
+                        <span class="badge bg-success-subtle text-success small mt-1" style="font-size: 0.65rem;">
+                            <i class="bi bi-patch-check-fill me-0.5"></i> Verified Address
+                        </span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-1.5 text-primary mb-1">
+                            <i class="bi bi-credit-card-2-front-fill"></i>
+                            <span class="small text-uppercase fw-bold" style="font-size: 0.7rem;">Payment Method</span>
+                        </div>
+                        <p class="fw-semibold text-dark small mb-0">{{ order.payment_method }}</p>
+                        <span class="badge bg-primary-subtle text-primary small mt-1" style="font-size: 0.65rem;">
+                            <i class="bi bi-shield-check me-0.5"></i> Authorized in Sandbox
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Order Financial Summary & Next Actions (Col 5) -->
+        <div class="col-lg-5">
+            <aside class="order-summary-card">
+                <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">Order Receipt</h5>
+                    <i class="bi bi-receipt text-primary fs-5"></i>
+                </div>
+
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <span class="text-muted">Items Subtotal</span>
+                        <span class="fw-semibold text-dark">₹{{ '{:,.2f}'.format(order.subtotal) }}</span>
+                    </div>
+
+                    {% if order.discount_amount and order.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between align-items-center small text-success">
+                        <span>Coupon Discount ({{ order.coupon_code or 'PROMO' }})</span>
+                        <span class="fw-bold">- ₹{{ '{:,.2f}'.format(order.discount_amount) }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <span class="text-muted">Shipping Fee</span>
+                        {% if order.shipping_fee == 0 %}
+                        <span class="badge bg-success-subtle text-success fw-bold">FREE</span>
+                        {% else %}
+                        <span class="fw-semibold text-dark">₹{{ '{:,.2f}'.format(order.shipping_fee) }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Grand Total Paid -->
+                <div class="p-3 bg-light rounded-3 mb-4 border">
+                    <div class="d-flex justify-content-between align-items-baseline mb-0.5">
+                        <span class="fw-bold text-dark fs-6">Total Amount Paid:</span>
+                        <span class="fs-4 fw-extrabold text-primary" style="color: #087E83 !important;">₹{{ '{:,.2f}'.format(order.total_amount) }}</span>
+                    </div>
+                    <span class="text-muted small d-block" style="font-size: 0.72rem;">Inclusive of GST &bull; Paid via {{ order.payment_method }}</span>
+                </div>
+
+                <!-- Action CTAs -->
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <a href="{{ url_for('main.products') }}" class="btn btn-primary rounded-pill py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-bag"></i>
+                        <span>Continue Shopping</span>
+                    </a>
+                    <a href="{{ url_for('cart.my_orders') }}" class="btn btn-outline-secondary rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-box-seam"></i>
+                        <span>View My Order History</span>
+                    </a>
+                </div>
+
+                <!-- Security Assurance -->
+                <div class="pt-3 border-top text-center text-muted" style="font-size: 0.72rem;">
+                    <i class="bi bi-shield-lock text-success me-1"></i>
+                    <span>Order reference #{{ order.order_id }} is permanently recorded in Oracle Database 26ai.</span>
+                </div>
+            </aside>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

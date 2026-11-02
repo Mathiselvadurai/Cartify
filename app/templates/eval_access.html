@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}ML Evaluation Access — Cartify{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="bg-dark text-white p-4 text-center">
+                    <div class="d-inline-flex p-3 bg-primary bg-opacity-25 rounded-circle mb-3">
+                        <i class="bi bi-shield-lock-fill text-primary fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">Academic Evaluation Portal</h4>
+                    <p class="text-white-50 small mb-0">Capstone ML Performance & RecSys Evaluation Dashboard</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <p class="text-muted small mb-4">
+                        This dashboard contains quantitative offline evaluation metrics, policy comparisons, diversity measurements, and repeatable latency benchmarks. Access is restricted for demonstration and viva review to protect customer privacy and data integrity.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('evaluation.dashboard') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-dark">Evaluator Access Key</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
+                                <input type="password" name="access_key" class="form-control border-start-0 ps-0" placeholder="Enter key (e.g. cartify-eval-2026)" required>
+                            </div>
+                            <div class="form-text small">Default project demo key: <code class="fw-bold">cartify-eval-2026</code> or <code class="fw-bold">demo</code></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold mb-3">
+                            <i class="bi bi-unlock-fill me-1"></i> Unlock Dashboard
+                        </button>
+                    </form>
+
+                    <div class="border-top pt-3 text-center">
+                        <small class="text-muted d-block mb-2">Faculty & Evaluator 1-Click Access:</small>
+                        <a href="{{ url_for('evaluation.dashboard', demo=1) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                            <i class="bi bi-person-badge me-1"></i> Launch with Demo Privileges
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light py-3 px-4 border-0 small text-center text-muted">
+                    <i class="bi bi-shield-check text-success me-1"></i> 100% Read-Only • No Database Alterations • PII Masked
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

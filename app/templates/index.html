@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Cartify — Smart Product Recommendation & E-Commerce System{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+
+    <!-- ======================================================================
+         SECTION 1: HERO EDITORIAL (Stitch Screen 1)
+         ====================================================================== -->
+    <section class="hero-editorial">
+        <div class="hero-glow-1"></div>
+        <div class="hero-glow-2"></div>
+
+        <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+            <!-- Left Editorial Column -->
+            <div class="col-lg-7 pe-lg-4">
+                <div class="ai-engine-pill mb-3">
+                    <span class="material-symbols-outlined fs-6" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    <span>Powered by Machine Intelligence</span>
+                    <span class="pulse-dot"></span>
+                </div>
+
+                <h1 class="hero-display-headline mb-3">
+                    Curation tailored to your taste, perfected by machine intelligence.
+                </h1>
+
+                <p class="lead text-muted mb-4" style="font-size: 1.15rem; line-height: 1.6;">
+                    Discover handpicked lifestyle essentials, apparel, footwear, and accessories dynamically matched to your everyday aesthetic, past orders, and browsing history.
+                </p>
+
+                <!-- CTA Button Cluster -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                    <a href="#recommended-stream" class="btn btn-primary btn-lg rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow">
+                        <span>Explore Personalized Picks</span>
+                        <i class="bi bi-arrow-down"></i>
+                    </a>
+                    <a href="{{ url_for('main.products') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 py-3 d-flex align-items-center gap-2 bg-white">
+                        <span class="material-symbols-outlined fs-5">grid_view</span>
+                        <span>Browse 35k+ Catalog</span>
+                    </a>
+                </div>
+
+                <!-- Social Proof & Live Engine Metrics -->
+                <div class="pt-2 d-flex flex-wrap align-items-center gap-4 text-muted small border-top">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex -space-x-2">
+                            <span class="avatar-circle bg-teal text-white fw-bold shadow-xs" style="width: 32px; height: 32px; font-size: 0.75rem;">AN</span>
+                            <span class="avatar-circle bg-mint text-dark fw-bold shadow-xs" style="width: 32px; height: 32px; font-size: 0.75rem;">AS</span>
+                            <span class="avatar-circle bg-secondary text-white fw-bold shadow-xs" style="width: 32px; height: 32px; font-size: 0.75rem;">KG</span>
+                            <span class="avatar-circle bg-dark text-white fw-bold shadow-xs" style="width: 32px; height: 32px; font-size: 0.7rem;">+50k</span>
+                        </div>
+                        <div>
+                            <div class="d-flex text-amber-500">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <strong class="ms-1 text-dark">4.9 / 5.0</strong>
+                            </div>
+                            <span class="text-muted" style="font-size: 0.75rem;">From 50,000+ customer interactions</span>
+                        </div>
+                    </div>
+
+                    <div class="vr d-none d-sm-block my-1"></div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="avatar-circle bg-success-subtle text-success" style="width: 32px; height: 32px;">
+                            <i class="bi bi-patch-check-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <strong class="text-dark d-block" style="font-size: 0.85rem;">98.4% Match Rate</strong>
+                            <span class="text-muted" style="font-size: 0.75rem;">Collaborative SVD & TF-IDF accuracy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Featured Product Hero Card -->
+            <div class="col-lg-5">
+                {% if hero_product %}
+                <div class="hero-featured-card">
+                    <!-- Floating Context Signal Tooltip -->
+                    <div class="hero-context-tooltip">
+                        <div class="avatar-circle bg-primary text-white" style="width: 24px; height: 24px; font-size: 0.75rem;">
+                            <i class="bi bi-cpu"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <span class="d-block text-primary fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Context Signal</span>
+                            <span class="text-dark small text-truncate d-block" style="font-size: 0.75rem;">Trending in {{ hero_product.category or 'Catalog' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Container -->
+                    <div class="product-img-box mb-3" style="aspect-ratio: 4 / 3;">
+                        <img src="{{ hero_product.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ hero_product.product_name }}" onerror="this.onerror=null; this.src='https://placehold.co/400x400?text=Featured+Product';">
+                        <span class="affinity-match-pill">99% Match Score</span>
+                        <div class="position-absolute bottom-0 start-0 end-0 p-2 text-center text-dark bg-white bg-opacity-75 small fw-semibold" style="backdrop-filter: blur(4px); font-size: 0.72rem;">
+                            Verified ACID • In Stock ({{ hero_product.stock_quantity or 50 }}) • Express Delivery
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem; letter-spacing: 0.04em;">{{ hero_product.brand or 'Cartify Signature' }} &bull; {{ hero_product.category }}</span>
+                        <div class="d-flex align-items-center text-warning small">
+                            <i class="bi bi-star-fill me-1"></i>
+                            <strong class="text-dark">{{ hero_product.rating or '4.8' }}</strong>
+                            <span class="text-muted ms-1" style="font-size: 0.75rem;">({{ hero_product.review_count or 120 }})</span>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">
+                        <a href="{{ url_for('main.product_detail', product_id=hero_product.product_id) }}" class="text-dark text-decoration-none">
+                            {{ hero_product.product_name }}
+                        </a>
+                    </h5>
+
+                    <p class="small text-muted mb-3 text-truncate">
+                        {{ hero_product.product_description or 'Precision engineered for quality and lifestyle comfort.' }}
+                    </p>
+
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="fs-4 fw-extrabold text-primary">&#8377;{{ "%.2f"|format(hero_product.sale_price_inr or hero_product.price_inr) }}</span>
+                            {% if hero_product.sale_price_inr and hero_product.sale_price_inr < hero_product.price_inr %}
+                            <span class="text-muted text-decoration-line-through small">&#8377;{{ "%.2f"|format(hero_product.price_inr) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <form action="{{ url_for('cart.add_to_cart', product_id=hero_product.product_id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-primary rounded-pill px-3 py-1.5 d-flex align-items-center gap-1.5 shadow-sm">
+                                <i class="bi bi-bag-plus"></i>
+                                <span>Add to Bag</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 2: CURATED CATEGORY BENTO GRID (Stitch Screen 1)
+         ====================================================================== -->
+    <section class="py-4 my-3">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-end gap-2 mb-4">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="pulse-dot"></span>
+                    <span class="text-uppercase fw-bold text-muted small" style="letter-spacing: 0.05em;">Taxonomy Grid</span>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">Explore Curated Collections</h3>
+                <p class="text-muted small mb-0">Precision lifestyle essentials categorized for effortless tactical discovery.</p>
+            </div>
+            <a href="{{ url_for('main.products') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 d-inline-flex align-items-center gap-1">
+                <span>View all collections</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% set category_defaults = [
+                {'cat': 'Apparel', 'label': 'Apparel & Fashion', 'count': '21,399', 'icon': 'bi-tshirt'},
+                {'cat': 'Footwear', 'label': 'Footwear & Athletic', 'count': '9,219', 'icon': 'bi-boot'},
+                {'cat': 'Personal Care', 'label': 'Personal Care & Fragrance', 'count': '2,402', 'icon': 'bi-droplet-half'},
+                {'cat': 'Accessories', 'label': 'Everyday Accessories', 'count': '1,128', 'icon': 'bi-watch'},
+                {'cat': 'Sporting Goods', 'label': 'Sports & Fitness Gear', 'count': '1,106', 'icon': 'bi-trophy'}
+            ] %}
+
+            {% for c in categories[:5] %}
+            <div class="col-6 col-md-4 col-lg">
+                <a href="{{ url_for('main.products', category=c.category) }}" class="category-card h-100">
+                    <div class="category-icon">
+                        {% if c.category == 'Apparel' %}
+                        <i class="bi bi-tshirt"></i>
+                        {% elif c.category == 'Footwear' %}
+                        <i class="bi bi-boot"></i>
+                        {% elif c.category == 'Personal Care' %}
+                        <i class="bi bi-droplet-half"></i>
+                        {% elif c.category == 'Accessories' %}
+                        <i class="bi bi-watch"></i>
+                        {% else %}
+                        <i class="bi bi-tag-fill"></i>
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1 text-truncate">{{ c.category }}</h6>
+                    <span class="badge badge-teal rounded-pill" style="font-size: 0.72rem;">{{ '{:,}'.format(c.count) }} Items</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 3: SIGNATURE AI RECOMMENDATION STREAM (Stitch Screen 1)
+         ====================================================================== -->
+    <section class="my-5 neural-stream-container" id="recommended-stream">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
+            <div>
+                <div class="d-inline-flex align-items-center gap-1.5 px-3 py-1 rounded-pill bg-white text-primary fw-bold small border shadow-xs mb-2">
+                    <span class="material-symbols-outlined fs-6" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    <span>Real-Time Neural Affinity Engine</span>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">
+                    {% if current_user %}
+                        Personalized Stream for {{ current_user.name }}
+                    {% else %}
+                        Personalized Recommendation Stream
+                    {% endif %}
+                </h2>
+                <p class="text-muted small mb-0">
+                    Dynamically synthesized using your vector affinities, collaborative nearest-neighbors, and category diversity caps (max 3/type).
+                </p>
+            </div>
+
+            <!-- Strategy Badges -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge badge-mint rounded-pill px-3 py-1.5">
+                    <i class="bi bi-check2-circle me-1"></i>Hybrid Policy Active
+                </span>
+                <span class="badge badge-teal rounded-pill px-3 py-1.5">
+                    <i class="bi bi-shield-check me-1"></i>Zero Data Leakage
+                </span>
+            </div>
+        </div>
+
+        <!-- 4-Column Product Grid -->
+        <div class="row g-4">
+            {% for item in recommended %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="affinity-product-card">
+                    <div>
+                        <!-- Image Container with Badges -->
+                        <div class="product-img-box">
+                            <img src="{{ item.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ item.product_name }}" onerror="this.onerror=null; this.src='https://placehold.co/300x300?text=Product';">
+                            
+                            <!-- Match Score Pill -->
+                            <span class="affinity-match-pill">
+                                {{ item.rank_score|int if item.rank_score else (item.similarity_score|int if item.similarity_score else 95) }}% Match
+                            </span>
+
+                            <!-- Wishlist Toggle Heart -->
+                            <form action="{{ url_for('auth.wishlist_toggle', product_id=item.product_id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn-wishlist-heart {% if item.product_id in wishlist_ids %}active{% endif %}" title="Save to wishlist">
+                                    <i class="bi {% if item.product_id in wishlist_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Affinity Explanation Tag -->
+                        <div class="affinity-reason-tag" title="{{ item.recommendation_reason or 'Matches your browsing affinities' }}">
+                            <span class="material-symbols-outlined fs-6" style="font-size: 0.85rem !important;">hub</span>
+                            <span>{{ item.recommendation_reason or 'Recommended based on catalog affinity' }}</span>
+                        </div>
+
+                        <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.04em;">
+                            {{ item.brand or 'Cartify' }} &bull; {{ item.category }}
+                        </span>
+
+                        <h6 class="fw-bold mb-1 mt-0.5">
+                            <a href="{{ url_for('main.product_detail', product_id=item.product_id) }}" class="text-dark text-decoration-none text-truncate d-block" title="{{ item.product_name }}">
+                                {{ item.product_name }}
+                            </a>
+                        </h6>
+
+                        <!-- Star Rating -->
+                        <div class="d-flex align-items-center gap-1 text-warning small mb-2">
+                            <i class="bi bi-star-fill text-warning" style="font-size: 0.75rem;"></i>
+                            <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ item.rating or '4.8' }}</span>
+                            <span class="text-muted" style="font-size: 0.72rem;">({{ item.review_count or 140 }})</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-1">
+                        <div class="d-flex align-items-baseline gap-1.5">
+                            <span class="fw-bold text-primary fs-5">&#8377;{{ "%.2f"|format(item.sale_price_inr or item.price_inr) }}</span>
+                            {% if item.sale_price_inr and item.sale_price_inr < item.price_inr %}
+                            <span class="text-muted text-decoration-line-through small" style="font-size: 0.75rem;">&#8377;{{ "%.2f"|format(item.price_inr) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <form action="{{ url_for('cart.add_to_cart', product_id=item.product_id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-cart-plus"></i>
+                                <span>Quick Add</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 4: BEST SELLERS & TRENDING IN CATALOG (Stitch Screen 1)
+         ====================================================================== -->
+    <section class="py-4 my-3">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <span class="badge badge-mint rounded-pill px-3 py-1 fw-bold mb-1">
+                    <i class="bi bi-fire me-1"></i>High-Velocity Catalog
+                </span>
+                <h3 class="fw-bold mb-0 text-dark">Trending & Best Sellers</h3>
+                <p class="text-muted small mb-0">Frequently purchased and highly rated items across our 35,000+ item database.</p>
+            </div>
+            <a href="{{ url_for('main.products', sort='popular') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                <span>View All Trending</span>
+                <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for item in trending[:4] %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="affinity-product-card">
+                    <div>
+                        <div class="product-img-box">
+                            <img src="{{ item.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ item.product_name }}" onerror="this.onerror=null; this.src='https://placehold.co/300x300?text=Product';">
+                            <span class="badge bg-danger rounded-pill position-absolute top-2 start-2 shadow-xs" style="font-size: 0.7rem; top: 10px; left: 10px;">
+                                Best Seller
+                            </span>
+                            <form action="{{ url_for('auth.wishlist_toggle', product_id=item.product_id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn-wishlist-heart {% if item.product_id in wishlist_ids %}active{% endif %}" title="Save to wishlist">
+                                    <i class="bi {% if item.product_id in wishlist_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.04em;">
+                            {{ item.brand or 'Popular' }} &bull; {{ item.category }}
+                        </span>
+
+                        <h6 class="fw-bold mb-1 mt-0.5">
+                            <a href="{{ url_for('main.product_detail', product_id=item.product_id) }}" class="text-dark text-decoration-none text-truncate d-block" title="{{ item.product_name }}">
+                                {{ item.product_name }}
+                            </a>
+                        </h6>
+
+                        <div class="d-flex align-items-center gap-1 text-warning small mb-2">
+                            <i class="bi bi-star-fill text-warning" style="font-size: 0.75rem;"></i>
+                            <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ item.rating or '5.0' }}</span>
+                            <span class="text-muted" style="font-size: 0.72rem;">({{ item.review_count or 200 }})</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-1">
+                        <div class="d-flex align-items-baseline gap-1.5">
+                            <span class="fw-bold text-primary fs-5">&#8377;{{ "%.2f"|format(item.sale_price_inr or item.price_inr) }}</span>
+                        </div>
+
+                        <form action="{{ url_for('cart.add_to_cart', product_id=item.product_id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-cart-plus"></i>
+                                <span>Add</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 5: SYSTEM SAFEGUARDS & DATABASE ASSURANCE
+         ====================================================================== -->
+    <section class="py-4 my-2">
+        <div class="p-4 rounded-4 bg-white border shadow-sm">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-4 d-flex align-items-center gap-3">
+                    <div class="avatar-circle bg-teal text-white flex-shrink-0" style="width: 46px; height: 46px;">
+                        <i class="bi bi-database-check fs-4"></i>
+                    </div>
+                    <div>
+                        <strong class="text-dark d-block">Oracle Database 26ai</strong>
+                        <span class="small text-muted">ACID transactions, sequences, and verified data integrity.</span>
+                    </div>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-center gap-3">
+                    <div class="avatar-circle bg-mint text-dark flex-shrink-0" style="width: 46px; height: 46px;">
+                        <i class="bi bi-cpu fs-4"></i>
+                    </div>
+                    <div>
+                        <strong class="text-dark d-block">Hybrid ML Recommendations</strong>
+                        <span class="small text-muted">Content-based TF-IDF, TruncatedSVD LSA, & Collaborative Filtering.</span>
+                    </div>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-center gap-3">
+                    <div class="avatar-circle bg-success-subtle text-success flex-shrink-0" style="width: 46px; height: 46px;">
+                        <i class="bi bi-shield-lock-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <strong class="text-dark d-block">Verified CSRF & IDOR Defenses</strong>
+                        <span class="small text-muted">Cryptographic session validation and customer privacy isolation.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

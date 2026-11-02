@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Profile & Command Center — Cartify{% endblock %}
+
+{% block content %}
+<div class="container my-3 my-lg-4">
+
+    <!-- Top Ambient Accent Strip -->
+    <div class="p-3 bg-white rounded-4 border shadow-sm mb-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2 small text-muted">
+            <span class="badge bg-success rounded-circle p-1" style="width: 8px; height: 8px;"> </span>
+            <strong class="text-dark">Primary Verified Account</strong>
+            <span>&bull;</span>
+            <span>Standard Express Delivery Active</span>
+            <span>&bull;</span>
+            <span>Member since {{ user.member_since or '2025' }}</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge badge-mint rounded-pill px-3 py-1 font-monospace">{{ user.membership_tier or 'Standard' }} Tier</span>
+            <a href="{{ url_for('main.products') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                <i class="bi bi-bag me-1"></i> Continue Shopping
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 items-start">
+
+        <!-- ===================================================================
+             LEFT SIDEBAR COLUMN (Identity Card & Navigation)
+             =================================================================== -->
+        <aside class="col-lg-4 col-xl-3">
+            <div class="d-flex flex-column gap-3">
+
+                <!-- Profile Identity Card -->
+                <div class="profile-card p-4 text-center position-relative">
+                    <div class="position-relative d-inline-block mx-auto mb-3">
+                        <div class="avatar-circle mx-auto shadow-sm" style="width: 76px; height: 76px; font-size: 1.8rem;">
+                            {{ user.first_name[0] if user.first_name else 'U' }}
+                        </div>
+                        <span class="position-absolute bottom-0 end-0 badge bg-success rounded-circle p-1 border border-white" title="Verified Customer">
+                            <i class="bi bi-check-lg text-white" style="font-size: 0.75rem;"></i>
+                        </span>
+                    </div>
+
+                    <h4 class="fw-bold mb-0 text-dark">{{ user.first_name }} {{ user.last_name }}</h4>
+                    <p class="small text-muted mb-2 text-truncate">{{ user.email }}</p>
+
+                    <div class="d-inline-flex align-items-center gap-1 px-3 py-1 bg-light rounded-pill border small text-muted mb-3">
+                        <i class="bi bi-shield-check text-primary"></i>
+                        <span>{{ user.membership_tier or 'Standard' }} Member</span>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border text-start d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="small text-muted text-uppercase d-block" style="font-size: 0.68rem; letter-spacing: 0.05em;">Cartify Rewards</span>
+                            <strong class="fs-5 text-primary">{{ (order_stats.total_orders or 0) * 120 + 250 }} pts</strong>
+                        </div>
+                        <div class="badge-icon bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-center">
+                            <span class="material-symbols-outlined fs-6">redeem</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Navigation Menu -->
+                <nav class="profile-card p-2 d-flex flex-column gap-1">
+                    <a href="#overview" class="profile-nav-link active">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined fs-6">dashboard</span>
+                            <span>Overview &amp; Dashboard</span>
+                        </div>
+                        <i class="bi bi-chevron-right small"></i>
+                    </a>
+
+                    <a href="#orders" class="profile-nav-link">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined fs-6">receipt_long</span>
+                            <span>Orders &amp; Receipts</span>
+                        </div>
+                        <span class="badge badge-teal rounded-pill">{{ order_stats.total_orders or 0 }}</span>
+                    </a>
+
+                    <a href="#addresses" class="profile-nav-link">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined fs-6">pin_drop</span>
+                            <span>Saved Addresses</span>
+                        </div>
+                        <i class="bi bi-chevron-right small"></i>
+                    </a>
+
+                    <a href="#wishlist" class="profile-nav-link">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined fs-6 text-danger">bookmark_heart</span>
+                            <span>Active Wishlist</span>
+                        </div>
+                        <span class="badge badge-mint rounded-pill">{{ wishlist_products|length }}</span>
+                    </a>
+
+                    <hr class="my-1 border-secondary border-opacity-25">
+
+                    <a href="{{ url_for('auth.logout') }}" class="profile-nav-link text-danger">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined fs-6">logout</span>
+                            <span>Sign Out</span>
+                        </div>
+                    </a>
+                </nav>
+
+                <!-- Priority Support Callout -->
+                <div class="p-3 bg-light rounded-4 border d-flex align-items-start gap-2 shadow-sm">
+                    <span class="material-symbols-outlined text-primary fs-5 mt-1">support_agent</span>
+                    <div>
+                        <strong class="small d-block text-dark">Need Assistance?</strong>
+                        <p class="text-muted mb-1" style="font-size: 0.75rem;">Priority support is ready 24/7 for tracked shipments, orders, and returns.</p>
+                        <a href="mailto:support@cartify.ecommerce" class="small text-decoration-none fw-semibold" style="color: var(--cartify-primary); font-size: 0.75rem;">Contact Support &rarr;</a>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- ===================================================================
+             RIGHT MAIN COLUMN (Command Center, Orders, Wishlist)
+             =================================================================== -->
+        <section class="col-lg-8 col-xl-9">
+            <div class="d-flex flex-column gap-4">
+
+                <!-- 1. Welcome Banner & Quick Summary Stats -->
+                <div class="profile-card p-4 p-xl-5" id="overview">
+                    <div class="d-flex flex-column flex-md-row md:items-center justify-content-between gap-3 mb-4">
+                        <div>
+                            <span class="small text-muted text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">Customer Command Center</span>
+                            <h2 class="fw-bold mb-1" style="color: var(--cartify-text-main);">Welcome back, {{ user.first_name }}</h2>
+                            <p class="small text-muted mb-0">Here is the state of your ongoing orders, active wishlist, and billing details.</p>
+                        </div>
+                        <div>
+                            <a href="{{ url_for('main.products') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2">
+                                <i class="bi bi-cart3"></i>
+                                <span>Browse Catalog</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 3 KPI Metric Summary Boxes -->
+                    <div class="row g-3">
+                        <div class="col-sm-4">
+                            <div class="profile-stat-box">
+                                <div class="profile-stat-icon">
+                                    <span class="material-symbols-outlined">inventory_2</span>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-0 text-dark">{{ order_stats.total_orders or 0 }}</h4>
+                                    <span class="small text-muted" style="font-size: 0.75rem;">Lifetime Orders</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="profile-stat-box">
+                                <div class="profile-stat-icon text-success">
+                                    <span class="material-symbols-outlined">local_shipping</span>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-0 text-dark">{{ active_orders_count }}</h4>
+                                    <span class="small text-muted" style="font-size: 0.75rem;">Orders in Transit</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="profile-stat-box">
+                                <div class="profile-stat-icon text-danger">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-0 text-dark">{{ wishlist_products|length }}</h4>
+                                    <span class="small text-muted" style="font-size: 0.75rem;">Saved in Wishlist</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Active Order Live Progress Stepper (If an order exists) -->
+                {% if active_order %}
+                <div class="profile-card p-4 p-xl-5">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 pb-3 border-bottom mb-4">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <h5 class="fw-bold mb-0 text-dark">Order #ORD-{{ active_order.order_id }}</h5>
+                            <span class="badge badge-mint rounded-pill px-2.5 py-1">
+                                <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.5rem;"></i>
+                                {{ active_order.order_status or 'Processing' }}
+                            </span>
+                            <span class="small text-muted">Placed {{ active_order.formatted_date }}</span>
+                        </div>
+                        <div>
+                            <a href="{{ url_for('cart.order_success', order_id=active_order.order_id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                View Invoice &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Progress Stepper Component -->
+                    {% set status = (active_order.order_status or 'Pending')|lower %}
+                    <div class="order-stepper my-3">
+                        <div class="order-stepper-track"></div>
+                        {% set pct = 25 %}
+                        {% if 'confirm' in status or 'process' in status %}{% set pct = 50 %}{% endif %}
+                        {% if 'ship' in status %}{% set pct = 75 %}{% endif %}
+                        {% if 'deliver' in status or 'complet' in status %}{% set pct = 100 %}{% endif %}
+                        <div class="order-stepper-progress" style="width: calc({{ pct }}% - 80px);"></div>
+
+                        <div class="d-flex justify-content-between position-relative" style="z-index: 3;">
+                            <!-- Step 1: Placed -->
+                            <div class="order-stepper-step completed">
+                                <div class="order-stepper-dot"><i class="bi bi-check-lg"></i></div>
+                                <span class="small fw-bold mt-2 text-dark">Placed</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">Verified</span>
+                            </div>
+
+                            <!-- Step 2: Confirmed -->
+                            <div class="order-stepper-step {% if pct >= 50 %}completed{% else %}active{% endif %}">
+                                <div class="order-stepper-dot">
+                                    {% if pct >= 50 %}<i class="bi bi-check-lg"></i>{% else %}2{% endif %}
+                                </div>
+                                <span class="small fw-bold mt-2 text-dark">Confirmed</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">ACID Tx</span>
+                            </div>
+
+                            <!-- Step 3: Packed / Processing -->
+                            <div class="order-stepper-step {% if pct >= 75 %}completed{% elif pct == 50 %}active{% endif %}">
+                                <div class="order-stepper-dot">
+                                    {% if pct >= 75 %}<i class="bi bi-check-lg"></i>{% else %}3{% endif %}
+                                </div>
+                                <span class="small fw-bold mt-2 text-dark">Processing</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">Fulfillment</span>
+                            </div>
+
+                            <!-- Step 4: Shipped / Delivered -->
+                            <div class="order-stepper-step {% if pct == 100 %}completed{% elif pct == 75 %}active{% endif %}">
+                                <div class="order-stepper-dot">
+                                    {% if pct == 100 %}<i class="bi bi-check-lg"></i>{% else %}<i class="bi bi-truck"></i>{% endif %}
+                                </div>
+                                <span class="small fw-bold mt-2 text-dark">Delivered</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">Standard</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items Strip in Most Recent Order -->
+                    <div class="p-3 bg-light rounded-3 border d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if active_order.items_preview %}
+                            <div class="d-flex -space-x-2">
+                                {% for item in active_order.items_preview %}
+                                <img src="{{ item.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ item.product_name }}" class="rounded-2 border bg-white shadow-sm" style="width: 44px; height: 44px; object-fit: contain;">
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <span class="small fw-bold text-dark d-block">Order contains {{ active_order.item_count or 1 }} item(s)</span>
+                                <span class="text-muted" style="font-size: 0.75rem;">Payment: {{ active_order.payment_method or 'Credit Card' }}</span>
+                            </div>
+                        </div>
+                        <div class="text-sm-end">
+                            <span class="fs-5 fw-bold text-dark d-block">&#8377;{{ "%.2f"|format(active_order.total_amount) }}</span>
+                            <span class="badge badge-mint rounded-pill" style="font-size: 0.7rem;">Free Shipping Included</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 3. Recent Orders History Table -->
+                <div class="profile-card" id="orders">
+                    <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">Recent Orders</h5>
+                            <p class="small text-muted mb-0">Review order receipts, shipment statuses, and purchase history.</p>
+                        </div>
+                        <a href="{{ url_for('cart.my_orders') }}" class="small fw-semibold text-decoration-none" style="color: var(--cartify-primary);">
+                            View All History &rarr;
+                        </a>
+                    </div>
+
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr class="text-muted small text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                    <th class="ps-4 py-3">Order ID</th>
+                                    <th class="py-3">Date</th>
+                                    <th class="py-3">Items</th>
+                                    <th class="py-3">Total Amount</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="pe-4 py-3 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for o in recent_orders %}
+                                <tr>
+                                    <td class="ps-4 fw-bold text-dark">#ORD-{{ o.order_id }}</td>
+                                    <td class="small text-muted">{{ o.formatted_date }}</td>
+                                    <td class="small">{{ o.item_count }} item(s)</td>
+                                    <td class="fw-bold text-dark">&#8377;{{ "%.2f"|format(o.total_amount) }}</td>
+                                    <td>
+                                        <span class="badge badge-mint rounded-pill px-2.5 py-1">
+                                            {{ o.order_status or 'Confirmed' }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="{{ url_for('cart.order_success', order_id=o.order_id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                            Receipt
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <!-- Empty Orders State -->
+                    <div class="p-5 text-center text-muted">
+                        <div class="avatar-circle mx-auto mb-3 bg-light text-muted" style="width: 56px; height: 56px;">
+                            <i class="bi bi-box-seam fs-3"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark">No orders placed yet</h6>
+                        <p class="small text-muted mb-3">Explore our active 34,000+ item catalog and place your first order.</p>
+                        <a href="{{ url_for('main.products') }}" class="btn btn-primary rounded-pill px-4">
+                            Start Shopping &rarr;
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 4. Two-Column Split: Saved Address & Wishlist Quick Glance -->
+                <div class="row g-4">
+
+                    <!-- Saved Delivery Address Card -->
+                    <div class="col-md-5" id="addresses">
+                        <div class="profile-card p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary fs-5">location_on</span>
+                                        <h6 class="fw-bold mb-0 text-dark">Primary Address</h6>
+                                    </div>
+                                    <span class="badge badge-mint rounded-pill">Default</span>
+                                </div>
+                                <p class="small text-muted mb-3">Default destination for express shipping and billing invoices.</p>
+
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong class="d-block text-dark">{{ user.first_name }} {{ user.last_name }}</strong>
+                                            <p class="small text-muted mb-2 leading-relaxed">
+                                                City: {{ user.city or 'Mumbai' }}<br>
+                                                State: {{ user.state or 'Maharashtra' }}<br>
+                                                Country: India
+                                            </p>
+                                            <span class="small text-muted"><i class="bi bi-telephone me-1"></i>+91 (Verified Account)</span>
+                                        </div>
+                                        <i class="bi bi-house-door text-primary fs-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 mt-3 border-top d-flex align-items-center justify-content-between">
+                                <span class="small text-muted">Synced with Oracle DB</span>
+                                <a href="{{ url_for('cart.checkout') }}" class="small fw-semibold text-decoration-none" style="color: var(--cartify-primary);">
+                                    Use in Checkout &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Saved Wishlist Card -->
+                    <div class="col-md-7" id="wishlist">
+                        <div class="profile-card p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-danger fs-5">bookmark_heart</span>
+                                        <h6 class="fw-bold mb-0 text-dark">Saved Wishlist Items</h6>
+                                    </div>
+                                    <span class="badge badge-teal rounded-pill">{{ wishlist_products|length }} Saved</span>
+                                </div>
+                                <p class="small text-muted mb-3">Personalized items saved for quick checkout or price monitoring.</p>
+
+                                {% if wishlist_products %}
+                                <div class="d-flex flex-column gap-2">
+                                    {% for item in wishlist_products %}
+                                    <div class="wishlist-item-row">
+                                        <div class="d-flex align-items-center gap-3 overflow-hidden">
+                                            <img src="{{ item.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ item.product_name }}" class="wishlist-thumb">
+                                            <div class="overflow-hidden">
+                                                <a href="{{ url_for('main.product_detail', product_id=item.product_id) }}" class="small fw-bold text-dark text-truncate d-block text-decoration-none" title="{{ item.product_name }}">
+                                                    {{ item.product_name }}
+                                                </a>
+                                                <div class="d-flex align-items-center gap-2 mt-0.5">
+                                                    <span class="fw-bold text-primary">&#8377;{{ "%.2f"|format(item.sale_price_inr or item.price_inr) }}</span>
+                                                    {% if item.stock_quantity and item.stock_quantity > 0 %}
+                                                    <span class="text-success" style="font-size: 0.7rem;"><i class="bi bi-check-circle-fill me-0.5"></i>In Stock</span>
+                                                    {% else %}
+                                                    <span class="text-muted" style="font-size: 0.7rem;">Out of Stock</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                            <!-- Move to Cart Form -->
+                                            <form action="{{ url_for('cart.add_to_cart', product_id=item.product_id) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="quantity" value="1">
+                                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 d-flex align-items-center gap-1 shadow-sm" title="Add to Shopping Cart">
+                                                    <i class="bi bi-cart-plus"></i>
+                                                    <span class="d-none d-sm-inline">Add to Cart</span>
+                                                </button>
+                                            </form>
+
+                                            <!-- Remove from Wishlist Form -->
+                                            <form action="{{ url_for('auth.wishlist_remove', product_id=item.product_id) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1.5" title="Remove from Wishlist">
+                                                    <i class="bi bi-trash" style="font-size: 0.85rem;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <!-- Empty Wishlist State -->
+                                <div class="p-4 text-center text-muted bg-light rounded-3 border">
+                                    <i class="bi bi-heart fs-3 text-danger mb-2 d-block"></i>
+                                    <strong class="d-block text-dark small">Your wishlist is empty</strong>
+                                    <span class="text-muted d-block small mb-3">Save items you love by clicking the heart icon on any product page.</span>
+                                    <a href="{{ url_for('main.products') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        Explore Catalog
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="pt-3 mt-3 border-top d-flex align-items-center justify-content-between">
+                                <span class="small text-muted">Persistent across sessions</span>
+                                <a href="{{ url_for('main.products') }}" class="small fw-semibold text-decoration-none" style="color: var(--cartify-primary);">
+                                    Discover More &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

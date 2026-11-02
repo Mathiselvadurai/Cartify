@@ -1,0 +1,53 @@
+{% extends "owner_base.html" %}
+
+{% block title %}{{ module_title }} — Store Owner Portal{% endblock %}
+{% block header_title %}{{ active_page|capitalize }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="owner-card p-4 p-md-5 text-center shadow-lg">
+            <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle mb-3" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                {% if active_page == 'inventory' %}
+                    <span class="material-symbols-outlined text-info" style="font-size: 48px;">warehouse</span>
+                {% elif active_page == 'products' %}
+                    <span class="material-symbols-outlined text-info" style="font-size: 48px;">inventory_2</span>
+                {% elif active_page == 'orders' %}
+                    <span class="material-symbols-outlined text-info" style="font-size: 48px;">receipt_long</span>
+                {% else %}
+                    <span class="material-symbols-outlined text-info" style="font-size: 48px;">construction</span>
+                {% endif %}
+            </div>
+            
+            <h2 class="h3 fw-bold text-white mb-2">{{ module_title }}</h2>
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                <span class="spinner-grow spinner-grow-sm text-info" style="width: 0.5rem; height: 0.5rem;" role="status"></span>
+                <span class="small text-info fw-semibold font-monospace">Phase 7 Scheduled Release</span>
+            </div>
+
+            <p class="text-secondary mb-4" style="color: var(--owner-text-muted) !important; font-size: 0.95rem; line-height: 1.6;">
+                {{ module_description }}
+            </p>
+
+            <div class="p-3 rounded-3 mb-4 text-start" style="background-color: var(--owner-surface-elevated); border: 1px solid var(--owner-border);">
+                <div class="small fw-semibold text-white mb-2 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined fs-6 text-info">verified</span>
+                    <span>Scope Architecture Boundary</span>
+                </div>
+                <div class="small" style="color: var(--owner-text-muted); font-size: 0.82rem;">
+                    In accordance with the Cartify Roadmap, Phase 6 establishes the Store Owner Dashboard and executive metrics. Interactive catalog modifications, restock adjustments, and fulfillment tracking will be activated in Phase 7.
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('owner.dashboard') }}" class="btn btn-info px-4 py-2 rounded-pill fw-semibold text-dark">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Overview
+                </a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold text-light">
+                    Storefront
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

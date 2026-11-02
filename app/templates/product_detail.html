@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.product_name }} — Cartify{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+
+    <!-- Breadcrumb Hierarchy (Stitch Screen 3) -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('main.products') }}" class="text-decoration-none">Catalog</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('main.products', category=product.category) }}" class="text-decoration-none">{{ product.category }}</a></li>
+            {% if product.subcategory %}
+            <li class="breadcrumb-item"><a href="{{ url_for('main.products', category=product.category, subcategory=product.subcategory) }}" class="text-decoration-none">{{ product.subcategory }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active text-truncate" style="max-width: 280px;" aria-current="page">{{ product.product_name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Main Product Showcase Section (Stitch Screen 3) -->
+    <div class="product-detail-card mb-5">
+        <div class="row g-4 items-start">
+
+            <!-- Left: Product Image Showcase -->
+            <div class="col-lg-5">
+                <div class="product-gallery-main">
+                    <img id="main-product-img" src="{{ product.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ product.product_name }}" onerror="this.onerror=null; this.src='https://placehold.co/600x600?text=Product+Image';">
+                    
+                    {% if product.discount_percent and product.discount_percent > 0 %}
+                    <span class="badge bg-danger rounded-pill position-absolute top-3 start-3 px-3 py-1.5 shadow-sm" style="font-size: 0.8rem; top: 16px; left: 16px;">
+                        {{ product.discount_percent|int }}% OFF
+                    </span>
+                    {% endif %}
+
+                    {% if product.stock_quantity and product.stock_quantity > 0 and product.stock_quantity < 10 %}
+                    <span class="badge bg-warning text-dark rounded-pill position-absolute bottom-3 start-3 px-3 py-1 shadow-sm" style="font-size: 0.75rem; bottom: 16px; left: 16px;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Low Stock: Only {{ product.stock_quantity }} left
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right: Product Information & Purchase Operations -->
+            <div class="col-lg-7 ps-lg-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge badge-teal rounded-pill px-3 py-1 text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                        {{ product.brand or 'Cartify Signature' }} &bull; {{ product.category }}
+                    </span>
+
+                    <span class="small text-muted font-monospace">Item ID: #{{ product.product_id }}</span>
+                </div>
+
+                <h1 class="h2 fw-bold text-dark mb-2" style="line-height: 1.25;">
+                    {{ product.product_name }}
+                </h1>
+
+                <!-- Rating, Verified Reviews & Sales Velocity -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-1 text-warning">
+                        {% set r = product.rating|int if product.rating else 4 %}
+                        {% for i in range(5) %}
+                            {% if i < r %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <strong class="ms-1 text-dark">{{ product.rating or '4.5' }}</strong>
+                    </div>
+
+                    <span class="text-muted small border-start ps-2">
+                        {{ product.review_count or 0 }} verified customer ratings
+                    </span>
+
+                    <span class="badge bg-light text-dark border small rounded-pill">
+                        <i class="bi bi-bag-check me-1"></i>{{ product.sales_count or 12 }} orders placed
+                    </span>
+                </div>
+
+                <!-- Price Breakdown Block -->
+                <div class="p-3 bg-light rounded-3 mb-4 border">
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="fs-2 fw-extrabold text-primary">&#8377;{{ "%.2f"|format(product.sale_price_inr or product.price_inr) }}</span>
+                        {% if product.sale_price_inr and product.sale_price_inr < product.price_inr %}
+                        <span class="fs-5 text-muted text-decoration-line-through">&#8377;{{ "%.2f"|format(product.price_inr) }}</span>
+                        <span class="badge bg-success-subtle text-success fw-bold px-2.5 py-1 rounded-pill">
+                            Save &#8377;{{ "%.2f"|format(product.price_inr - product.sale_price_inr) }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        Inclusive of all local taxes. Free expedited delivery on orders over &#8377;999.
+                    </small>
+                </div>
+
+                <!-- Summary Description -->
+                <p class="text-secondary mb-4 leading-relaxed">
+                    {{ product.product_description or 'Precision engineered for everyday functionality, tactile comfort, and verified lifestyle durability.' }}
+                </p>
+
+                <!-- Color / Variant Indicator -->
+                {% if product.color or product.variant %}
+                <div class="mb-3">
+                    <span class="small fw-bold text-muted text-uppercase d-block mb-1">Color / Variant:</span>
+                    <span class="badge bg-white text-dark border px-3 py-1.5 rounded-pill shadow-xs">
+                        <i class="bi bi-palette me-1 text-primary"></i>{{ product.color or product.variant }}
+                    </span>
+                </div>
+                {% endif %}
+
+                <!-- Purchase Action Form with Quantity Stepper & CSRF (Stitch Screen 3) -->
+                <div class="pt-3 border-top mb-4">
+                    <form action="{{ url_for('cart.add_to_cart', product_id=product.product_id) }}" method="POST" class="d-flex flex-wrap align-items-center gap-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <!-- Quantity Stepper -->
+                        <div class="qty-counter-stepper">
+                            <button type="button" onclick="decrementQty()" aria-label="Decrease quantity">
+                                <i class="bi bi-dash"></i>
+                            </button>
+                            <input type="number" id="purchase-qty" name="quantity" value="1" min="1" max="{{ product.stock_quantity or 10 }}" readonly>
+                            <button type="button" onclick="incrementQty({{ product.stock_quantity or 10 }})" aria-label="Increase quantity">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Primary Add to Cart Button -->
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 flex-grow-1 d-flex align-items-center justify-content-center gap-2 shadow" {% if product.stock_quantity == 0 %}disabled{% endif %}>
+                            <i class="bi bi-bag-plus"></i>
+                            <span>{% if product.stock_quantity == 0 %}Out of Stock{% else %}Add to Cart{% endif %}</span>
+                        </button>
+                    </form>
+
+                    <!-- Persistent Wishlist Toggle Action -->
+                    <form action="{{ url_for('auth.wishlist_toggle', product_id=product.product_id) }}" method="POST" class="mt-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm {% if product.product_id in wishlist_ids %}btn-outline-danger active{% else %}btn-outline-secondary{% endif %} rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5">
+                            <i class="bi {% if product.product_id in wishlist_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+                            <span>{% if product.product_id in wishlist_ids %}Saved to Wishlist{% else %}Save to Wishlist{% endif %}</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Grounded Value Assurance Grid (Stitch Screen 3) -->
+                <div class="p-3 bg-light rounded-3 border">
+                    <div class="row g-2 small text-muted">
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-truck text-primary fs-5"></i>
+                            <span>Fast Delivery Available</span>
+                        </div>
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-success fs-5"></i>
+                            <span>Verified Authentic Product</span>
+                        </div>
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-database-check text-primary fs-5"></i>
+                            <span>Oracle ACID Protected</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         TABBED SPECIFICATIONS & GENUINE REVIEWS (Stitch Screen 3)
+         ====================================================================== -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-5">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-pills gap-2 mb-4 pb-2 border-bottom" id="productTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-3" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab">
+                    Product Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-3" id="specs-tab" data-bs-toggle="pill" data-bs-target="#specs" type="button" role="tab">
+                    Technical Specifications
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-3" id="reviews-tab" data-bs-toggle="pill" data-bs-target="#reviews" type="button" role="tab">
+                    Verified Customer Reviews ({{ reviews|length }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-3" id="shipping-tab" data-bs-toggle="pill" data-bs-target="#shipping" type="button" role="tab">
+                    Shipping &amp; Policies
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="productTabContent">
+
+            <!-- 1. Overview Tab -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <h5 class="fw-bold mb-3 text-dark">About {{ product.product_name }}</h5>
+                <p class="text-secondary leading-relaxed mb-4">
+                    {{ product.product_description }}
+                </p>
+                {% if product.search_keywords %}
+                <div class="mt-3">
+                    <strong class="small text-muted d-block mb-1">Search Tags &amp; Semantic Keywords:</strong>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for kw in product.search_keywords.split(',') %}
+                        <span class="badge bg-light text-muted border small">{{ kw.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 2. Specifications Tab -->
+            <div class="tab-pane fade" id="specs" role="tabpanel">
+                <h5 class="fw-bold mb-3 text-dark">Technical Attributes from Oracle 26ai</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped small align-middle mb-0">
+                        <tbody>
+                            <tr>
+                                <th style="width: 30%;" class="bg-light">Category</th>
+                                <td>{{ product.category }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Subcategory</th>
+                                <td>{{ product.subcategory or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Product Type</th>
+                                <td>{{ product.product_type or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Gender / Age Group</th>
+                                <td>{{ product.gender or 'Unisex' }} ({{ product.age_group or 'All' }})</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Primary Color</th>
+                                <td>{{ product.color or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Usage / Season</th>
+                                <td>{{ product.product_usage or 'General' }} / {{ product.season or 'All-Season' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Database Inventory</th>
+                                <td>{{ product.stock_quantity or 0 }} units in stock</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. Reviews Tab -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-dark">Genuine Customer Feedback</h5>
+                        <p class="text-muted small mb-0">Verified purchases stored in Oracle Database 26ai</p>
+                    </div>
+                    <span class="badge badge-teal rounded-pill px-3 py-1.5">{{ reviews|length }} Reviews</span>
+                </div>
+
+                {% if reviews %}
+                <div class="row g-3">
+                    {% for rev in reviews %}
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <span class="star-rating me-1">
+                                        {% for s in range(rev.rating) %}<i class="bi bi-star-fill text-warning"></i>{% endfor %}
+                                    </span>
+                                    <strong class="small ms-1 text-dark">{{ rev.review_title or 'Verified Purchase' }}</strong>
+                                </div>
+                                <span class="badge bg-success-subtle text-success small"><i class="bi bi-patch-check-fill me-1"></i> Verified</span>
+                            </div>
+                            <p class="small text-secondary mb-2">{{ rev.review_text }}</p>
+                            <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                                <span>Customer <strong>{{ rev.first_name }}</strong> from {{ rev.city }}</span>
+                                <span>{{ rev.helpful_votes }} helpful votes</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-chat-square-text fs-2 d-block mb-2 text-muted"></i>
+                    <h6 class="fw-bold text-dark">No reviews recorded yet for this item</h6>
+                    <p class="small text-muted">Order this product to be the first verified customer reviewer.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 4. Shipping Tab -->
+            <div class="tab-pane fade" id="shipping" role="tabpanel">
+                <h5 class="fw-bold mb-3 text-dark">Shipping &amp; Fulfillment Assurances</h5>
+                <ul class="small text-secondary ps-3 leading-relaxed mb-0">
+                    <li class="mb-2"><strong>Free Standard Shipping:</strong> Automatically applied at checkout on all orders exceeding &#8377;999.</li>
+                    <li class="mb-2"><strong>Estimated Delivery Time:</strong> 3–5 business days across major metros in India.</li>
+                    <li class="mb-2"><strong>30-Day Hassle-Free Returns:</strong> Eligible for return or exchange within 30 days of delivery.</li>
+                    <li><strong>Transactional ACID Safety:</strong> Inventory balances and checkout transactions are atomically updated in Oracle Database 26ai.</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         SIMILAR PRODUCTS CAROUSEL / GRID (Stitch Screen 3)
+         ====================================================================== -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <div class="d-inline-flex align-items-center gap-1 px-2.5 py-0.5 rounded-pill bg-primary-subtle text-primary small fw-bold mb-1">
+                    <i class="bi bi-cpu-fill me-1"></i> Content-Based TF-IDF + Cosine Similarity
+                </div>
+                <h4 class="fw-bold mb-0 text-dark">Similar Products You May Like</h4>
+                <p class="text-muted small mb-0">Mathematically matched via multi-attribute text vectors (title, keywords, description, category &amp; usage).</p>
+            </div>
+            <span class="badge bg-light text-secondary border small font-monospace mt-2 mt-md-0">
+                Top {{ recommendations|length }} Nearest Vectors
+            </span>
+        </div>
+
+        <div class="row g-3">
+            {% for rec in recommendations %}
+            <div class="col-6 col-md-4 col-lg-2">
+                <article class="affinity-product-card h-100">
+                    <div>
+                        <div class="product-img-box mb-2" style="aspect-ratio: 1 / 1;">
+                            <img src="{{ rec.image_url or url_for('static', filename='images/placeholder.jpg') }}" alt="{{ rec.product_name }}" onerror="this.onerror=null; this.src='https://placehold.co/200x200?text=Product';">
+                            <span class="affinity-match-pill" style="font-size: 0.65rem;">
+                                {{ rec.similarity_score|int }}% Match
+                            </span>
+                        </div>
+
+                        <span class="text-muted text-uppercase fw-semibold d-block text-truncate" style="font-size: 0.65rem;">
+                            {{ rec.brand or rec.category }}
+                        </span>
+
+                        <h6 class="fw-bold mb-1 mt-0.5" style="font-size: 0.78rem;">
+                            <a href="{{ url_for('main.product_detail', product_id=rec.product_id) }}" class="text-dark text-decoration-none text-truncate d-block" title="{{ rec.product_name }}">
+                                {{ rec.product_name }}
+                            </a>
+                        </h6>
+
+                        {% if rec.recommendation_reason %}
+                        <div class="affinity-reason-tag text-truncate mb-2" style="font-size: 0.65rem;" title="{{ rec.recommendation_reason }}">
+                            <span>{{ rec.recommendation_reason }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between pt-1 border-top mt-auto">
+                        <span class="fw-bold text-primary small">&#8377;{{ "%.0f"|format(rec.sale_price_inr or rec.price_inr) }}</span>
+
+                        <form action="{{ url_for('cart.add_to_cart', product_id=rec.product_id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-sm btn-outline-primary rounded-circle p-0" style="width: 26px; height: 26px;" title="Add to Cart">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Quantity Stepper Client Script -->
+<script>
+function incrementQty(maxStock) {
+    const input = document.getElementById('purchase-qty');
+    let val = parseInt(input.value) || 1;
+    if (val < maxStock) {
+        input.value = val + 1;
+    }
+}
+function decrementQty() {
+    const input = document.getElementById('purchase-qty');
+    let val = parseInt(input.value) || 1;
+    if (val > 1) {
+        input.value = val - 1;
+    }
+}
+</script>
+{% endblock %}

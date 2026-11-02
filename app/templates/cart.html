@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart ({{ cart|length }}) — Cartify{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Top Breadcrumb & Header (Stitch Screen 9) -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <h1 class="cart-header-title mb-0">Your Shopping Cart</h1>
+            {% if cart %}
+            <span class="cart-counter-pill">
+                <span class="cart-pulse-dot"></span>
+                <span>{{ cart|length }} distinct item{% if cart|length != 1 %}s{% endif %}</span>
+            </span>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('main.products') }}" class="text-decoration-none text-muted small fw-semibold hover-primary d-inline-flex align-items-center gap-1">
+            <i class="bi bi-arrow-left"></i>
+            <span>Continue Shopping</span>
+        </a>
+    </div>
+
+    {% if cart %}
+    <div class="row g-4 items-start">
+
+        <!-- Left Column: Cart Items Ledger (Col 8) -->
+        <div class="col-lg-8">
+            <div class="cart-table-card mb-4">
+                <!-- Column Headers (Desktop) -->
+                <div class="row d-none d-md-flex text-muted small fw-bold text-uppercase pb-2 mb-3 border-bottom" style="letter-spacing: 0.05em; font-size: 0.75rem;">
+                    <div class="col-6">Product Details</div>
+                    <div class="col-2 text-center">Unit Price</div>
+                    <div class="col-2 text-center">Quantity</div>
+                    <div class="col-2 text-end">Subtotal</div>
+                </div>
+
+                <!-- Product Items -->
+                <div class="d-flex flex-column">
+                    {% for pid, item in cart.items() %}
+                    <div class="cart-item-row" id="cart-row-{{ item.id }}">
+                        <div class="row align-items-center g-3">
+                            <!-- Product Info (6 cols) -->
+                            <div class="col-12 col-md-6">
+                                <div class="d-flex align-items-center gap-3">
+                                    <a href="{{ url_for('main.product_detail', product_id=item.id) }}" class="text-decoration-none shrink-0">
+                                        <img src="{{ item.image_url or url_for('static', filename='images/placeholder.jpg') }}" 
+                                             alt="{{ item.name }}" 
+                                             class="cart-product-thumb"
+                                             onerror="this.onerror=null; this.src='https://placehold.co/120x120?text=Product';">
+                                    </a>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <span class="badge bg-light text-muted border text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.04em;">
+                                            {{ item.brand or 'Cartify' }}
+                                        </span>
+                                        <h6 class="fw-bold mb-1 mt-1 text-truncate" style="max-width: 260px;">
+                                            <a href="{{ url_for('main.product_detail', product_id=item.id) }}" class="text-dark text-decoration-none hover-primary">
+                                                {{ item.name }}
+                                            </a>
+                                        </h6>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="text-muted small font-monospace" style="font-size: 0.72rem;">SKU: CRTF-{{ item.id }}</span>
+                                            <span class="badge bg-success-subtle text-success small" style="font-size: 0.65rem;">
+                                                <i class="bi bi-check-circle-fill me-0.5"></i> In Stock
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Unit Price (2 cols) -->
+                            <div class="col-4 col-md-2 text-md-center">
+                                <span class="d-md-none text-muted small d-block">Price:</span>
+                                <span class="fw-semibold text-dark">₹{{ '{:,.2f}'.format(item.price) }}</span>
+                            </div>
+
+                            <!-- Quantity Stepper (2 cols) -->
+                            <div class="col-4 col-md-2 text-center">
+                                <span class="d-md-none text-muted small d-block">Qty:</span>
+                                <div class="cart-qty-control">
+                                    <form action="{{ url_for('cart.update_cart') }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="product_id" value="{{ item.id }}">
+                                        <input type="hidden" name="action" value="decrease">
+                                        <button type="submit" class="cart-qty-btn" title="Decrease quantity">&minus;</button>
+                                    </form>
+                                    <span class="cart-qty-val">{{ item.quantity }}</span>
+                                    <form action="{{ url_for('cart.update_cart') }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="product_id" value="{{ item.id }}">
+                                        <input type="hidden" name="action" value="increase">
+                                        <button type="submit" class="cart-qty-btn" title="Increase quantity">&plus;</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Line Subtotal & Trash (2 cols) -->
+                            <div class="col-4 col-md-2 text-end">
+                                <span class="d-md-none text-muted small d-block">Subtotal:</span>
+                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                    <span class="fw-bold text-primary fs-6">₹{{ '{:,.2f}'.format(item.price * item.quantity) }}</span>
+                                    <form action="{{ url_for('cart.update_cart') }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="product_id" value="{{ item.id }}">
+                                        <input type="hidden" name="action" value="remove">
+                                        <button type="submit" class="cart-trash-btn" title="Remove product from cart">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Cart Bottom Actions -->
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 pt-4 border-top mt-3">
+                    <form action="{{ url_for('cart.update_cart') }}" method="POST" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="clear">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Are you sure you want to clear your shopping cart?');">
+                            <i class="bi bi-cart-x me-1"></i> Clear Cart
+                        </button>
+                    </form>
+                    <a href="{{ url_for('main.products') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-1"></i> Add More Items
+                    </a>
+                </div>
+            </div>
+
+            <!-- Promotional Code & Vouchers Card (Stitch Screen 9) -->
+            <div class="coupon-voucher-card mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-ticket-perforated-fill text-primary fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-dark">Promotional Code &amp; Vouchers</h6>
+                </div>
+
+                {% if totals.coupon_code %}
+                <div class="bg-white border rounded-3 p-3 d-flex justify-content-between align-items-center shadow-xs">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success-subtle text-success fs-6 px-3 py-1.5 rounded-pill font-monospace">
+                            <i class="bi bi-patch-check-fill me-1"></i> {{ totals.coupon_code }}
+                        </span>
+                        <span class="small text-muted">Applied successfully (₹{{ '{:,.2f}'.format(totals.discount) }} saved)</span>
+                    </div>
+                    <form action="{{ url_for('cart.remove_coupon') }}" method="POST" class="d-inline m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                            Remove
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <form action="{{ url_for('cart.apply_coupon') }}" method="POST" class="row g-2 align-items-center">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="col-sm-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-tag text-muted"></i></span>
+                            <input type="text" name="coupon_code" class="form-control border-start-0 text-uppercase fw-semibold" placeholder="Enter coupon code (e.g. CARTIFY10)" required>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <button type="submit" class="btn btn-primary rounded-pill w-100 fw-semibold">
+                            Apply Coupon
+                        </button>
+                    </div>
+                </form>
+                <div class="small text-muted mt-2 d-flex align-items-center gap-1.5">
+                    <i class="bi bi-info-circle text-primary"></i>
+                    <span>Try: <span class="badge bg-white text-dark border">CARTIFY10</span> (10% off), <span class="badge bg-white text-dark border">FESTIVE15</span> (15% off), or <span class="badge bg-white text-dark border">FLAT100</span> (₹100 off)</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Sticky Order Summary (Col 4) -->
+        <div class="col-lg-4">
+            <aside class="order-summary-card">
+                <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">Order Summary</h5>
+                    <i class="bi bi-receipt-cutoff text-muted fs-5"></i>
+                </div>
+
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <span class="text-muted">Items Subtotal</span>
+                        <span class="fw-semibold text-dark">₹{{ '{:,.2f}'.format(totals.subtotal) }}</span>
+                    </div>
+
+                    {% if totals.discount > 0 %}
+                    <div class="d-flex justify-content-between align-items-center small text-success">
+                        <span>Promo Discount ({{ totals.coupon_code }})</span>
+                        <span class="fw-bold">- ₹{{ '{:,.2f}'.format(totals.discount) }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-start small">
+                        <div>
+                            <span class="text-muted d-block">Estimated Shipping</span>
+                            {% if totals.shipping == 0 %}
+                            <span class="text-success small fw-medium" style="font-size: 0.72rem;">Free standard delivery eligible</span>
+                            {% else %}
+                            <span class="text-muted small" style="font-size: 0.72rem;">Add ₹{{ '{:,.0f}'.format(999 - totals.subtotal) }} for free delivery</span>
+                            {% endif %}
+                        </div>
+                        {% if totals.shipping == 0 %}
+                        <span class="badge bg-success-subtle text-success fw-bold">FREE</span>
+                        {% else %}
+                        <span class="fw-semibold text-dark">₹{{ '{:,.2f}'.format(totals.shipping) }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                        <span>Estimated Tax (GST)</span>
+                        <span>Included in price</span>
+                    </div>
+                </div>
+
+                <!-- Grand Total -->
+                <div class="pt-3 border-top mb-4 bg-light p-3 rounded-3">
+                    <div class="d-flex justify-content-between align-items-baseline mb-1">
+                        <span class="fw-bold text-dark fs-6">Total Amount:</span>
+                        <span class="fs-4 fw-extrabold text-primary" style="color: #087E83 !important;">₹{{ '{:,.2f}'.format(totals.total) }}</span>
+                    </div>
+                    <span class="text-muted small d-block" style="font-size: 0.72rem;">Inclusive of all applicable Indian taxes &amp; GST</span>
+                </div>
+
+                <!-- Proceed to Checkout Button -->
+                <a href="{{ url_for('cart.checkout') }}" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-3">
+                    <span>Proceed to Checkout</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+
+                <!-- Trust Assurances Mini Grid -->
+                <div class="pt-3 border-top text-center">
+                    <div class="row g-2 text-muted" style="font-size: 0.75rem;">
+                        <div class="col-4">
+                            <i class="bi bi-shield-lock text-primary fs-5 d-block mb-1"></i>
+                            <span class="fw-semibold d-block">SSL 256-Bit</span>
+                            <span>Encrypted</span>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-database-check text-success fs-5 d-block mb-1"></i>
+                            <span class="fw-semibold d-block">Oracle 26ai</span>
+                            <span>ACID Safety</span>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-arrow-counterclockwise text-primary fs-5 d-block mb-1"></i>
+                            <span class="fw-semibold d-block">30-Day</span>
+                            <span>Easy Returns</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+    </div>
+
+    {% else %}
+    <!-- Empty Cart State (Stitch Screen 9) -->
+    <div class="empty-cart-card my-4">
+        <div class="avatar-circle mx-auto mb-3 bg-light text-muted" style="width: 80px; height: 80px;">
+            <i class="bi bi-cart-x fs-1 text-muted"></i>
+        </div>
+        <h3 class="fw-bold text-dark mb-2">Your Shopping Cart is Empty</h3>
+        <p class="text-muted small mx-auto mb-4" style="max-width: 460px;">
+            Looks like you haven't added anything to your cart yet. Explore our 35,000+ catalog with ML-powered recommendations!
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('main.products') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-shop me-1.5"></i> Browse Smart Catalog
+            </a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                Back to Homepage
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
